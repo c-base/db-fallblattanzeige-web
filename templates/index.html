@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+        <title>CYBER!</title>
+
+        <!-- Bootstrap -->
+        <style>
+            @import "{{ url_for('static', filename='css/bootstrap.min.css') }}";
+        </style>
+
+        <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+        <script src="{{ url_for('static', filename='js/html5shiv.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/respond.min.js') }}"></script>
+        <![endif]-->
+    </head>
+    <body>
+        <div class="container">
+            <h1>CYBER!</h1>
+
+            <div class="row">
+                <div class="col-lg-6">
+                    <form class="form-horizontal">
+                        <fieldset>
+                            <legend>Anzeige 1</legend>
+
+                            <div class="form-group">
+                                <label class="col-md-4 control-label" for="selectbasic">Select Basic</label>
+                                <div class="col-md-6">
+                                    <select id="selectbasic" name="selectbasic" class="form-control">
+                                        <option value="1">Option one</option>
+                                        <option value="2">Option two</option>
+                                    </select><!-- #selectbasic /.form-control -->
+                                </div><!-- /.col-md-4 -->
+                            </div><!-- /.form-group -->
+
+                            <div class="form-group">
+                                <label class="col-md-4 control-label" for="selectbasic">Select Basic</label>
+                                <div class="col-md-6">
+                                    <select id="selectbasic" name="selectbasic" class="form-control">
+                                        <option value="1">Option one</option>
+                                        <option value="2">Option two</option>
+                                    </select><!-- #selectbasic /.form-control -->
+                                </div><!-- /.col-md-4 -->
+                            </div><!-- /.form-group -->
+
+                            <div class="form-group">
+                                <label class="col-md-4 control-label" for="selectbasic">Select Basic</label>
+                                <div class="col-md-6">
+                                    <select id="selectbasic" name="selectbasic" class="form-control">
+                                        <option value="1">Option one</option>
+                                        <option value="2">Option two</option>
+                                    </select><!-- #selectbasic /.form-control -->
+                                </div><!-- /.col-md-4 -->
+                            </div><!-- /.form-group -->
+
+                            <div class="form-group">
+                                <label class="col-md-4 control-label" for="button1id">Double Button</label>
+                                <div class="col-md-8">
+                                    <button id="button1id" name="button1id" class="btn btn-success">Good Button</button>
+                                    <button id="button2id" name="button2id" class="btn btn-danger">Scary Button</button>
+                                </div><!-- /.col-md-4 -->
+                            </div><!-- /.form-group -->
+                        </fieldset>
+                    </form><!-- /.form-horizontal -->
+                </div><!-- /.col-lg-6 -->
+                <div class="col-lg-6">
+                    <form class="form-horizontal">
+                        <fieldset>
+                            <legend>Anzeige 2</legend>
+
+                            <div class="form-group">
+                                <label class="col-md-4 control-label" for="line2">Line</label>
+                                <div class="col-md-6">
+                                    <select id="line2" name="line2" class="form-control">
+                                        <option value="1">Option one</option>
+                                    </select><!-- #selectbasic /.form-control -->
+                                </div><!-- /.col-md-4 -->
+                                <div class="col-md-2">
+                                    <button id="line2rand" name="line2rand" class="btn btn-default">Random</button>
+                                </div><!-- /.col-md-2 -->
+                            </div><!-- /.form-group -->
+
+                            <div class="form-group">
+                                <label class="col-md-4 control-label" for="target2">Target</label>
+                                <div class="col-md-6">
+                                    <select id="target2" name="target2" class="form-control">
+                                        <option value="1">Option one</option>
+                                    </select><!-- #selectbasic /.form-control -->
+                                </div><!-- /.col-md-4 -->
+                                <div class="col-md-2">
+                                    <button id="target2rand" name="target2rand" class="btn btn-default">Random</button>
+                                </div><!-- /.col-md-2 -->
+                            </div><!-- /.form-group -->
+
+                            <div class="form-group">
+                                <label class="col-md-4 control-label" for="desc2">Description</label>
+                                <div class="col-md-6">
+                                    <select id="desc2" name="desc2" class="form-control">
+                                        <option value="1">Option one</option>
+                                    </select><!-- #selectbasic /.form-control -->
+                                </div><!-- /.col-md-4 -->
+                                <div class="col-md-2">
+                                    <button id="desc2rand" name="desc2rand" class="btn btn-default">Random</button>
+                                </div><!-- /.col-md-2 -->
+                            </div><!-- /.form-group -->
+
+                            <div class="form-group">
+                                <label class="col-md-4 control-label" for="button1id">Double Button</label>
+                                <div class="col-md-8">
+                                    <button id="button1id" name="button1id" class="btn btn-primary">Go!</button>
+                                    <button id="button2id" name="button2id" class="btn btn-danger">Reset</button>
+                                </div><!-- /.col-md-4 -->
+                            </div><!-- /.form-group -->
+                        </fieldset>
+                    </form><!-- /.form-horizontal -->
+                </div><!-- /.col-lg-6 -->
+            </div><!-- /.row -->
+            <div class="row">
+                <div class="col-lg-12">
+                    <form class="form-horizontal">
+                        <fieldset>
+                            <legend>Maintenance</legend>
+
+                            <div class="form-group">
+                                <label class="col-md-4 control-label" for="homeall">Homing</label>
+                                <div class="col-md-4">
+                                    <select id="homesingleselect" name="homesingleselect" class="form-control">
+                                        <option value="1">Option one</option>
+                                    </select><!-- #selectbasic /.form-control -->
+                                </div><!-- /.col-md-4 -->
+                                <div class="col-md-2">
+                                    <button id="homesinglebutton" name="homesinglebutton" class="btn btn-default">Home</button>
+                                    <button id="homeall" name="homeall" class="btn btn-primary">Home all</button>
+                                </div><!-- /.col-md-4 -->
+                            </div><!-- /.form-group -->
+                        </fieldset>
+                    </form><!-- /.form-horizontal -->
+                </div><!-- /.col-lg-12 -->
+            </div><!-- /.row -->
+            <div class="row">
+                <h2>Console:</h2>
+                <pre id="log">
+                    <p>1970-01-01 00:00:00 - Test1</p><p>1970-01-01 00:00:00 - Test2</p>
+                </pre>
+            </div>
+        </div><!-- /.container -->
+
+    <script src="{{ url_for('static', filename='js/jquery-2.2.0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-migrate-1.2.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/socket.io-1.4.3.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/select2.full.min.js') }}"></script>
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function(){
+            $("#line2").select2();
+            $("#target2").select2();
+            $("#desc2").select2();
+
+            var namespace = '/cyber';  // change to an empty string to use the global namespace
+
+            // the socket.io documentation recommends sending an explicit package upon connection
+            // this is specially important when using the global namespace
+            var socket;
+
+            function connect() {
+                socket = io.connect('http://' + document.domain + ':' + location.port + namespace);
+                // event handler for server sent data
+                // the data is displayed in the "Received" section of the page
+                socket.on('my response', function(msg) {
+                    $('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
+                });
+
+                // event handler for new connections
+                socket.on('connect', function() {
+                    socket.emit('my event', {data: 'I\'m connected!'});
+                });
+            }
+
+            $(function() {
+                connect();
+            });
+
+            // handlers for the different forms in the page
+            // these send data to the server in a variety of ways
+            $('form#broadcast').submit(function(event) {
+                socket.emit('my broadcast event', {data: $('#broadcast_data').val()});
+                return false;
+            });
+            $('form#home').submit(function(event) {
+                socket.emit('home event', {data: {leave_id: $('#leave_id').val()}});
+                return false;
+            });
+            $('form#disconnect').submit(function(event) {
+                socket.emit('disconnect request');
+                return false;
+            });
+            $('form#connect').submit(function(event) {
+                connect();
+                return false;
+            });
+        });
+    </script>
+</body>
+</html>
