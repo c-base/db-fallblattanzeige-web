@@ -4,8 +4,9 @@
 import logging
 import logging.handlers
 
+import q
 from flask import Flask, render_template, session
-from flask_socketio import SocketIO, emit, join_room, leave_room, close_room, rooms, disconnect
+from flask_socketio import SocketIO, emit, disconnect
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -19,32 +20,37 @@ formatter = logging.Formatter('%(asctime)s - %(levelname)-5s - %(name)s - %(mess
 logger.addHandler(handler)
 
 
+@q
 @app.route('/')
 def index():
     return render_template('index.html')
 
 
-@socketio.on('my broadcast event', namespace='/cyber')
-def test_broadcast_message(message):
+@q
+@socketio.on('broadcast', namespace='/cyber')
+def broadcast_message(message):
     session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my response', {'data': message['data'], 'count': session['receive_count']}, broadcast=True)
+    emit('response', {'data': bytes(message['data'], 'utf-8'), 'count': session['receive_count']}, broadcast=True)
 
 
-@socketio.on('disconnect request', namespace='/cyber')
+@q
+@socketio.on('disconnect', namespace='/cyber')
 def disconnect_request():
     session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my response', {'data': 'Disconnected!', 'count': session['receive_count']})
+    emit('response', {'data': bytes('disconnected', 'utf-8'), 'count': session['receive_count']})
     disconnect()
 
 
-@socketio.on('connect', namespace='/test')
+@q
+@socketio.on('connect', namespace='/cyber')
 def test_connect():
-    emit('my response', {'data': 'Connected', 'count': 0})
+    emit('response', {'data': bytes('connected', 'utf-8'), 'count': 0})
 
 
-@socketio.on('disconnect', namespace='/test')
+@q
+@socketio.on('disconnect', namespace='/cyber')
 def test_disconnect():
-    print('Client disconnected')
+    print('disconnected')
 
 
 if __name__ == '__main__':
