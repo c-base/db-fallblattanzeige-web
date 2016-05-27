@@ -2,29 +2,25 @@
 
 ![cyber cug control](cybersteuerung_v0.1.0.png)
 
+# Protocol
 
-## Website (js) -> Backend (Flask)
+## SocketIO
 
-  - connect()
-  - disconnect()
-  - home(num)
-  - homeall()
-  - update(json)
+  - connect
+  - disconnect
+  - home
+  - homeall
+  - update
+  - reset
 
-## Website (js) <- Backend (Flask)
+## Serial
 
-  - update(json)
-  - reset()
+Home leave:
 
+  - command: `<leave_id>;home\n`
+  - response: `#<leave_id>;home\n`
 
-## Backend (Pyserial) -> Arduino
+Move leave:
 
-  - led(r, g, b, ww)
-  - move(leave, pos)
-  - home(leave)
-
-## Backend (Pyserial) <- Arduino
-
-  - \#led(r, g, b, ww)
-  - \#move(leave, pos)
-  - \#home(leave)
+  - command: `<leave_id>;move;<position>\n`
+  - response: `#<leave_id>;move;<position>\n`

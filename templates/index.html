@@ -203,6 +203,15 @@
     <script src="{{ url_for('static', filename='js/selectize.min.js') }}"></script>
 
     <script>
+        Object.prototype.in = function() {
+            for(var i = 0; i < arguments.length; i++) {
+                if(arguments[i] == this) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
         $(function() {
             $('#colorww1').slider({
                 formatter: function(value) {
@@ -244,20 +253,26 @@
             var socket = io.connect('http://' + document.domain + ':' + location.port);
 
             socket.on('connect', function() {
+                console.log('connection established!');
                 socket.emit('connected');
             });
 
             socket.on('update', function (json) {
-                console.log(json);
-                // TODO: change content of all controls
+                console.log('got update: ' + json);
+                // TODO: update content of all controls
             });
 
             $('#homing').submit(function(event) {
-                socket.emit('home', $('#homesingleselect').val());
+                id = $('#homesingleselect').val();
+                if(id.in(0,1,2,3,4,5)) {
+                    console.log('homing leave ' + id);
+                    socket.emit('home', id);
+                }
                 event.preventDefault();
             });
 
             $('#homeall').click(function() {
+                console.log('homing all leaves');
                 socket.emit('home', 'all');
             });
 
