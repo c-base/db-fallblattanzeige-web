@@ -11,6 +11,8 @@
         <style>
             @import "{{ url_for('static', filename='css/bootstrap.min.css') }}";
             @import "{{ url_for('static', filename='css/bootstrap-slider.min.css') }}";
+            @import "{{ url_for('static', filename='css/selectize.css') }}";
+            @import "{{ url_for('static', filename='css/selectize.bootstrap3.css') }}";
 
             #colorww1Slider .slider-selection,
             #colorww2Slider .slider-selection {
@@ -171,9 +173,9 @@
             </div><!-- /.row -->
             <div class="row">
                 <div class="col-lg-12">
-                    <form class="form-horizontal">
+                    <form id="homing" class="form-horizontal">
                         <fieldset>
-                            <legend>Wartung<span class="pull-right"><a id="maintenancetoggle" href="#"><span id="ico" class="glyphicon glyphicon-chevron-up" aria-hidden="true"></span></span></a></legend>
+                            <legend>Wartung</legend>
 
                             <div id="maintenance" class="form-group">
                                 <label class="col-md-4 control-label" for="homeall">Homing</label>
@@ -183,76 +185,83 @@
                                     </select><!-- #selectbasic /.form-control -->
                                 </div><!-- /.col-md-4 -->
                                 <div class="col-md-2">
-                                    <button id="homeone" name="homeone" class="btn btn-default">Home</button>
-                                    <button id="homeall" name="homeall" class="btn btn-primary">Home alle</button>
+                                    <button id="homeone" name="homeone" type="submit" class="btn btn-default">Home</button>
+                                    <button id="homeall" name="homeall" type="button" class="btn btn-primary">Home alle</button>
                                 </div><!-- /.col-md-4 -->
                             </div><!-- /.form-group -->
                         </fieldset>
                     </form><!-- /.form-horizontal -->
                 </div><!-- /.col-lg-12 -->
             </div><!-- /.row -->
-            <div id="console" class="row">
-                <h2>Console:</h2>
-                <pre id="log">
-                    <p>1970-01-01 00:00:00 - Test1</p>
-                    <p>1970-01-01 00:00:00 - Test2</p>
-                </pre>
-            </div>
         </div><!-- /.container -->
 
-    <script src="{{ url_for('static', filename='js/jquery-2.2.0.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/jquery-migrate-1.2.1.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/socket.io-1.4.3.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-2.2.4.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-migrate-1.3.0.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/select2.full.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap-slider.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/socket.io-1.4.6.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/selectize.min.js') }}"></script>
+
     <script>
-        $(document).ready(function(){
+        $(function() {
             $('#colorww1').slider({
                 formatter: function(value) {
                     return value + '%';
                 }
             });
-
             $('#colorww2').slider({
                 formatter: function(value) {
                     return value + '%';
                 }
             });
 
-            $("#line1").select2();
-            $("#line2").select2();
-            $("#target1").select2();
-            $("#target2").select2();
-            $("#desc1").select2();
-            $("#desc2").select2();
-
-            var namespace = '/cyber';  // change to an empty string to use the global namespace
-
-            // the socket.io documentation recommends sending an explicit package upon connection
-            // this is specially important when using the global namespace
-            var socket;
-
-            function connect() {
-                socket = io.connect('http://' + document.domain + ':' + location.port + namespace);
-                // event handler for server sent data
-                // the data is displayed in the "Received" section of the page
-                socket.on('response', function(msg) {
-                    console.log(msg.data)
-                    $('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
-                });
-
-                // event handler for new connections
-                socket.on('connect', function() {
-                    console.log('>>> new connection')
-                    socket.emit('connect', {data: 'I\'m connected!'});
-                });
-            }
-
-            $(function() {
-                connect();
+            $('#line1').selectize({
+                create: false,
+                sortField: 'text'
+            });
+            $('#line2').selectize({
+                create: false,
+                sortField: 'text'
+            });
+            $('#target1').selectize({
+                create: false,
+                sortField: 'text'
+            });
+            $('#target2').selectize({
+                create: false,
+                sortField: 'text'
+            });
+            $('#desc1').selectize({
+                create: false,
+                sortField: 'text'
+            });
+            $('#desc2').selectize({
+                create: false,
+                sortField: 'text'
             });
 
+
+            var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+            socket.on('connect', function() {
+                socket.emit('connected');
+            });
+
+            socket.on('update', function (json) {
+                console.log(json);
+                // TODO: change content of all controls
+            });
+
+            $('#homing').submit(function(event) {
+                socket.emit('home', $('#homesingleselect').val());
+                event.preventDefault();
+            });
+
+            $('#homeall').click(function() {
+                socket.emit('home', 'all');
+            });
+
+            /*
             // handlers for the different forms in the page
             // these send data to the server in a variety of ways
             $('form#broadcast').submit(function(event) {
@@ -271,21 +280,7 @@
                 connect();
                 return false;
             });
-        });
-
-        $("#maintenancetoggle").click(function() {
-            $("#maintenance").slideToggle("slow", function() {
-                if($("#ico").hasClass("glyphicon-chevron-up")) {
-                    $("#ico").removeClass("glyphicon-chevron-up");
-                    $("#ico").addClass("glyphicon-chevron-down");
-                    console.log("down")
-                } else {
-                    $("#ico").removeClass("glyphicon-chevron-down");
-                    $("#ico").addClass("glyphicon-chevron-up");
-                    console.log("up")
-                }
-            });
-            $("#console").slideToggle("slow");
+            */
         });
     </script>
 </body>
