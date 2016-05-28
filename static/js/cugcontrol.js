@@ -28,7 +28,7 @@ socket.on('reset', function(json) {
 socket.on('update', function (json) {
     console.log('updating interface');
     $.each(json, function(leaf, leafdata) {
-        $("#" + leaf).val(leafdata);
+        $('#' + leaf)[0].selectize.setValue(leafdata);
     });
     // TODO: update LED controls
 });

@@ -43,35 +43,26 @@
 
                             <div class="form-group">
                                 <label class="col-md-4 control-label" for="lineLeft">Linie</label>
-                                <div class="col-md-6">
+                                <div class="col-md-8">
                                     <select id="lineLeft" name="lineLeft" class="form-control">
                                     </select><!-- #line1 /.form-control -->
-                                </div><!-- /.col-md-4 -->
-                                <div class="col-md-2">
-                                    <button id="lineLeftRand" name="lineLeftRand" class="btn btn-default">Zufällig</button>
-                                </div><!-- /.col-md-2 -->
+                                </div><!-- /.col-md-8 -->
                             </div><!-- /.form-group -->
 
                             <div class="form-group">
                                 <label class="col-md-4 control-label" for="destLeft">Ziel</label>
-                                <div class="col-md-6">
+                                <div class="col-md-8">
                                     <select id="destLeft" name="destLeft" class="form-control">
                                     </select><!-- #selectbasic /.form-control -->
-                                </div><!-- /.col-md-4 -->
-                                <div class="col-md-2">
-                                    <button id="destLeftRand" name="destLeftRand" class="btn btn-default">Zufällig</button>
-                                </div><!-- /.col-md-2 -->
+                                </div><!-- /.col-md-8 -->
                             </div><!-- /.form-group -->
 
                             <div class="form-group">
                                 <label class="col-md-4 control-label" for="descLeft">Beschreibung</label>
-                                <div class="col-md-6">
+                                <div class="col-md-8">
                                     <select id="descLeft" name="descLeft" class="form-control">
                                     </select><!-- #selectbasic /.form-control -->
-                                </div><!-- /.col-md-4 -->
-                                <div class="col-md-2">
-                                    <button id="descLeftRand" name="descLeftRand" class="btn btn-default">Zufällig</button>
-                                </div><!-- /.col-md-2 -->
+                                </div><!-- /.col-md-8 -->
                             </div><!-- /.form-group -->
 
                             <div class="form-group">
@@ -94,7 +85,7 @@
                                 <label class="col-md-4 control-label" for="signLeftActions"></label>
                                 <div class="col-md-8">
                                     <button id="signLeftGo" name="signLeftActions" class="btn btn-primary">Anwenden</button>
-                                    <button id="signLeftReset" name="signLeftActions" class="btn btn-danger">Reset</button>
+                                    <button id="randLeft" name="randLeft" class="btn btn-default">Zufällig</button>
                                 </div><!-- /.col-md-4 -->
                             </div><!-- /.form-group -->
                         </fieldset>
@@ -107,35 +98,26 @@
 
                             <div class="form-group">
                                 <label class="col-md-4 control-label" for="lineRight">Linie</label>
-                                <div class="col-md-6">
+                                <div class="col-md-8">
                                     <select id="lineRight" name="lineRight" class="form-control">
                                     </select><!-- #line2 /.form-control -->
-                                </div><!-- /.col-md-4 -->
-                                <div class="col-md-2">
-                                    <button id="lineRightRand" name="lineRightRand" class="btn btn-default">Zufällig</button>
-                                </div><!-- /.col-md-2 -->
+                                </div><!-- /.col-md-8 -->
                             </div><!-- /.form-group -->
 
                             <div class="form-group">
                                 <label class="col-md-4 control-label" for="destRight">Ziel</label>
-                                <div class="col-md-6">
+                                <div class="col-md-8">
                                     <select id="destRight" name="destRight" class="form-control">
                                     </select><!-- #selectbasic /.form-control -->
-                                </div><!-- /.col-md-4 -->
-                                <div class="col-md-2">
-                                    <button id="destRightRand" name="destRightRand" class="btn btn-default">Zufällig</button>
-                                </div><!-- /.col-md-2 -->
+                                </div><!-- /.col-md-8 -->
                             </div><!-- /.form-group -->
 
                             <div class="form-group">
                                 <label class="col-md-4 control-label" for="descRight">Beschreibung</label>
-                                <div class="col-md-6">
+                                <div class="col-md-8">
                                     <select id="descRight" name="descRight" class="form-control">
                                     </select><!-- #selectbasic /.form-control -->
-                                </div><!-- /.col-md-4 -->
-                                <div class="col-md-2">
-                                    <button id="descRightRand" name="descRightRand" class="btn btn-default">Zufällig</button>
-                                </div><!-- /.col-md-2 -->
+                                </div><!-- /.col-md-8 -->
                             </div><!-- /.form-group -->
 
                             <div class="form-group">
@@ -158,7 +140,7 @@
                                 <label class="col-md-4 control-label" for="signRightActions"></label>
                                 <div class="col-md-8">
                                     <button id="signRightGo" name="signRightActions" class="btn btn-primary">Anwenden</button>
-                                    <button id="signRightReset" name="signRightActions" class="btn btn-danger">Reset</button>
+                                    <button id="randRight" name="randRight" class="btn btn-default">Zufällig</button>
                                 </div><!-- /.col-md-4 -->
                             </div><!-- /.form-group -->
                         </fieldset>
@@ -172,8 +154,7 @@
                             <legend>Wartung</legend>
 
                             <div id="maintenance" class="form-group">
-                                <label class="col-md-4 control-label" for="homeAll">Homing</label>
-                                <div class="col-md-4">
+                                <div class="col-md-3 col-md-offset-2">
                                     <select id="homeSingleSelect" name="homeSingleSelect" class="form-control">
                                         <option value="lineleft">Linie (links)</option>
                                         <option value="lineright">Linie (rechts)</option>
@@ -182,10 +163,13 @@
                                         <option value="descleft">Beschreibung (links)</option>
                                         <option value="descright">Beschreibung (rechts)</option>
                                     </select><!-- #selectbasic /.form-control -->
-                                </div><!-- /.col-md-4 -->
-                                <div class="col-md-2">
+                                </div><!-- /.col-md-3 -->
+                                <div class="col-md-1">
                                     <button id="homeOne" name="homeOne" type="submit" class="btn btn-default">Home</button>
+                                </div><!-- /.col-md-1 -->
+                                <div class="col-md-4 col-md-offset-2">
                                     <button id="homeAll" name="homeAll" type="button" class="btn btn-primary">Home alle</button>
+                                    <button id="Reset" name="reset" type="button" class="btn btn-danger">Reset</button>
                                 </div><!-- /.col-md-4 -->
                             </div><!-- /.form-group -->
                         </fieldset>
