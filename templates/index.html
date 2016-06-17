@@ -189,41 +189,14 @@
         "use strict";
 
         $(function() {
-            $('#colorWWLeft').slider({
-                formatter: function(value) {
-                    return value + '%';
-                }
-            });
-            $('#colorWWRight').slider({
-                formatter: function(value) {
-                    return value + '%';
-                }
-            });
-
-            $('#lineLeft').selectize({
-                create: false,
-                sortField: 'text'
-            });
-            $('#lineRight').selectize({
-                create: false,
-                sortField: 'text'
-            });
-            $('#destLeft').selectize({
-                create: false,
-                sortField: 'text'
-            });
-            $('#destRight').selectize({
-                create: false,
-                sortField: 'text'
-            });
-            $('#descLeft').selectize({
-                create: false,
-                sortField: 'text'
-            });
-            $('#descRight').selectize({
-                create: false,
-                sortField: 'text'
-            });
+            $('#colorWWLeft').slider({formatter: function(value) {return value + '%';}});
+            $('#colorWWRight').slider({formatter: function(value) {return value + '%';}});
+            $('#lineLeft').selectize({create: false, sortField: 'text'});
+            $('#lineRight').selectize({create: false, sortField: 'text'});
+            $('#destLeft').selectize({create: false, sortField: 'text'});
+            $('#destRight').selectize({create: false, sortField: 'text'});
+            $('#descLeft').selectize({create: false, sortField: 'text'});
+            $('#descRight').selectize({create: false, sortField: 'text'});
         });
     </script>
 </body>
