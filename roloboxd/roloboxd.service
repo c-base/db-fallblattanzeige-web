@@ -1,0 +1,10 @@
+[Unit]
+Description=Rolodex Display Daemon
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/alarm/db-fallblattanzeige-web/roloboxd/roloboxd.py
+
+[Install]
+WantedBy=multi-user.target

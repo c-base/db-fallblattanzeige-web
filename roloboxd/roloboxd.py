@@ -1,17 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# vim: ts=4 et
+# vim: ts=4:et
 
 import os
 import sys
 import asyncio
 import serial.aio
+import RPi.GPIO as GPIO
+
+def setup():
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(23, GPIO.OUT)#, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.setup(24, GPIO.OUT)#, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.output(23, GPIO.HIGH)
+    GPIO.output(24, GPIO.HIGH)
 
 def shutdown():
     # Close the server
     socket_proto.close()
     loop.run_until_complete(socket_proto.wait_closed())
     loop.close()
+    GPIO.output(23, GPIO.LOW)
+    GPIO.output(24, GPIO.LOW)
 
 class RoloboxProtocol(asyncio.Protocol):
 
@@ -46,13 +56,14 @@ class SerialProtocol(asyncio.Protocol):
         asyncio.get_event_loop().stop()
 
 
+setup()
 loop = asyncio.get_event_loop()
-socket_coroutine = loop.create_server(RoloboxProtocol, '127.0.0.1', 8888)
+socket_coroutine = loop.create_server(RoloboxProtocol, '0.0.0.0', 8888)
 socket_proto = loop.run_until_complete(socket_coroutine)
 print('Serving on %s:%d' % socket_proto.sockets[0].getsockname())
 
 try:
-    serial_coroutine = serial.aio.create_serial_connection(loop, SerialProtocol, '/dev/tty.NoZAP-PL2303-00002226', baudrate=115200)
+    serial_coroutine = serial.aio.create_serial_connection(loop, SerialProtocol, '/dev/ttyAMA0', baudrate=9600)
     serial_proto = loop.run_until_complete(serial_coroutine)
     loop.run_forever()
 except serial.serialutil.SerialException as e:
