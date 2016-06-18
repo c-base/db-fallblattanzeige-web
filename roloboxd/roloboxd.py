@@ -51,7 +51,7 @@ class Drum(object):
         self.address = int(address)
         self.pages = int(pages)
         self.strings = strings
-        self.sensor_shift = sensor_shift
+        self.sensor_shift = sensor_shift.upper()
         if len(strings) < pages:
             self.strings = strings + ["n/a"] * (pages - len(strings))
         self.current_page = 0
@@ -68,7 +68,7 @@ class Drum(object):
         """
         self.current_page = page
         #publsih page to mqtt 
-        client.publish("PIUI/display"), payload = page, qos=0, retain=False)
+        client.publish("PIUI/display", payload = page, qos=0, retain=False)
 
     def get_available_pages(self):
         """
@@ -173,7 +173,7 @@ class RoloboxProtocol(asyncio.Protocol):
                 adv = index
                 drum.advance_pages(adv)
                 data = '{}/{}/0\n'.format(int(address), drum.sensor_shift)
-                data += '{}/{}/adv\n'.format(int(address), drum.sensor_shift, adv)
+                data += '{}/{}/{}\n'.format(int(address), drum.sensor_shift, adv)
             asyncio.async(self.send_message(data.encode('utf-8')))
         else:
             address, advance_pages = msg.split('/', 1)
