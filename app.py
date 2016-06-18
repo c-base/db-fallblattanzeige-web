@@ -1,28 +1,21 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-import os
 import time
 import logging
 from logging.handlers import RotatingFileHandler
 
-import serial
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit, disconnect
-
-from config import LEAFS
 
 
 APP = Flask(__name__)
 APP.config['SECRET_KEY'] = 'secret!'
 SOCKETIO = SocketIO(APP)
 
-SERIALDEV = '/dev/ttyUSB0'
-SERIALBAUD = 9600
-
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
-fh = RotatingFileHandler('cug.log', maxBytes=1024*1024*1024, backupCount=3)
+fh = RotatingFileHandler('fia.log', maxBytes=1024*1024*1024, backupCount=3)
 fh.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 ch.setLevel(logging.ERROR)
@@ -45,109 +38,73 @@ def index():
     return render_template('index.html')
 
 
-def send_command(target, command, response=None):
+def send_command(command):
     """
-    Sends a command to the leaf controller bus. The target leaf should parse the command send a response and then
-    execute it.
+    Sends a command to the socket of the control daemon.
 
-    :param target: id of the leaf to send the command to
-    :type target: int
     :param command: the command and it's parameters
     :type command: str
-    :param response: the expected response
-    :type response: str
     :return: False or error message
     :rtype: str
     """
-    if target in range(6):
-        error = False
-        try:
-            with serial.Serial(SERIALDEV, SERIALBAUD, timeout=1) as ser:
-                msg = '%d;%s\n' % (target, command)
-                if not response:
-                    response = '#%s' % msg
-                LOGGER.info('sending command: %s' % msg)
-                ser.write(bytes(msg, encoding='utf-8'))
-
-                LOGGER.info('waiting for answer..')
-                timeout = time.time() + 5
-                while True:
-                    line = ser.readline()
-                    if line ==  response:
-                        LOGGER.info('command execution successful')
-                        break
-                    elif time.time() > timeout:
-                        error = 'timeout'
-                        LOGGER.error('timeout while sending command: %s' % msg)
-                        break
-            return error
-        except Exception as e:
-            LOGGER.error('unexpected error while sending command: %s' % e.with_traceback())
-            return e
-    LOGGER.warn('invalid leaf id given')
-    return 'invalid leave id'
-
+    pass
 
 @SOCKETIO.on('connect')
 def handle_connect_event():
     """
     A new web client established a connection.
     """
-    LOGGER.info('[%s] client connected' % request.remote_addr)
+    LOGGER.info('[%s] connected' % request.remote_addr)
     emit('connected')
+
 
 @SOCKETIO.on('disconnect')
 def handle_connect_event():
     """
     A web client closed a connection.
     """
-    LOGGER.info('[%s] client disconnected' % request.remote_addr)
-    # TODO: how do we disconnect? is this even necessary?
-    #disconnect()
+    LOGGER.info('[%s] disconnected' % request.remote_addr)
+
 
 @SOCKETIO.on('home')
-def handle_home_event(leaf):
+def handle_home_event(drum):
     """
     Home a leaf or all of them.
 
-    :param leaf: id of the leaf controller to home or 'all' to home all
-    :type leaf: int | 'all'
+    :param drum: id of the leaf controller to home or 'all' to home all
+    :type drum: int | 'all'
     """
-    LOGGER.info('[%s] home command received' % request.remote_addr)
-    if leaf in (0, 1, 2, 3, 4, 5):
-        send_command(leaf, 'home')
-    elif leaf == 'all':
-        for i in range(6):
-            send_command(i, 'home')
+    LOGGER.info('[%s] requested homing' % request.remote_addr)
+    send_command('home')
 
-@SOCKETIO.on('update')
+
+@SOCKETIO.on('resetme')
+def handle_resetme_event():
+    """
+    Resets the content of a web client.
+    """
+    LOGGER.info('[%s] wants fresh content' % request.remote_addr)
+    data = send_command('status')
+    emit('reset', data)
+
+
+@SOCKETIO.on('go')
 def handle_update_event(json):
     """
     A client changed something. Now push the update to the leafes.
 
-    :param json: A JSON string with all values
-    :type json: str
+    :param json: A JSON dict with the drum and the value it should be set to
+    :type json: dict
     """
-    LOGGER.info('[%s] update received, sending it to the others..') % request.remote_addr
-    LOGGER.debug('content was: ' + str(json))
-    emit('update', json, broadcast=True)
-    # TODO: send it to leafes
-    for leaf, value in json.items():
-        send_command(leaf, 'move;%d' % value)
+    LOGGER.info('[%s] wants to switch drum %d to %d' % (request.remote_addr, json['drum'], json['index']))
+    send_command('go %d %d' % (json['drum'], json['index']))
 
-@SOCKETIO.on('resetme')
-def handle_reset_event():
-    """
-    Resets the content of all web clients.
-    """
-    LOGGER.info('[%s] reset event received. sending fresh leafes' % request.remote_addr)
-    data = {}
-    for leaf, leafdata in LEAFS.items():
-        data[leaf] = {}
-        for k, v in leafdata.items():
-            if v is not None:
-                data[leaf][k] = v
-    emit('reset', data)
+
+def get_update_from_drums():
+    # TODO: get update
+    #if update:
+    #    emit('update', json, broadcast=True)
+    pass
 
 
 #@socketio.on('broadcast', namespace='/cyber')
