@@ -9,9 +9,17 @@ import serial.aio
 import RPi.GPIO as GPIO
 import configparser
 import json
+import paho.mqtt.client as mqtt
+
 
 DRUM_CONFIGS_DIR = os.path.join(os.path.dirname(__file__), 'drum_configs')
 drums = []
+
+client = mqtt.Client(client_id="piui_roll")
+try:
+    client.connect("msggwt1.service.deutschebahn.com", 1905, 60)
+except:
+    print("Sorry mqtt connection didn't work")
 
 def setup():
     GPIO.setwarnings(False)
@@ -59,6 +67,8 @@ class Drum(object):
         Change the current page of this drum
         """
         self.current_page = page
+        #publsih page to mqtt 
+        client.publish("PIUI/display"), payload = page, qos=0, retain=False)
 
     def get_available_pages(self):
         """
