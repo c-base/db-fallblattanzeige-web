@@ -4,23 +4,51 @@
 
 # Protocol
 
-## SocketIO
+## js -> flask
 
-  - connect
-  - disconnect
+  - connect()
+  - disconnect()
+  - updtae
+  - reset()
+  - home()
+  - go(drum, index)
+  - light(r, g, b, ww)
+  - poll()
+
+## flask -> js
+
+  - connected()
+  - reset(json)
+    - contains all drums and their contents
+
+## flask -> daemon
+
+  - last
+    ```
+    {
+      'changed': '1970-01-01 00:00:00'
+    }
+    ```
+  - status
+    ```
+    {
+      [
+        {'0': 'Potsdam Hbf'},
+        {'1': 'Berlin Hbf'},
+        {'2': ''}
+      ],
+      [
+        {'0': 'Nicht einsteigen'},
+        {'1': 'Kurzzug hält hinten'},
+        {'2': ''}
+      ],
+      [
+        {'0': 'S1'},
+        {'1': 'S2'},
+        {'2': ''}
+      ]
+    }
+    ```
+  - go $drum $index
   - home
-  - homeall
-  - update
-  - reset
-
-## Serial
-
-Home leave:
-
-  - command: `<leave_id>;home\n`
-  - response: `#<leave_id>;home\n`
-
-Move leave:
-
-  - command: `<leave_id>;move;<position>\n`
-  - response: `#<leave_id>;move;<position>\n`
+  - light $r $g $b $ww

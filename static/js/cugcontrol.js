@@ -11,7 +11,41 @@ socket.on('connected', function() {
     socket.emit('resetme');
 });
 
-socket.on('reset', function(json) {
+socket.on('update', function (json) {
+    console.log('got update. refreshing stuff..')
+    // TODO: refresh all controls
+});
+
+$('#home').click(function () {
+    console.log('sending homing command');
+    socket.emit('home', {'data': null});
+});
+
+$('#reset').click(function () {
+    console.log('sending reset command');
+    socket.emit('reset', {'data': null});
+});
+
+$('#signLeftGo').click(function () {
+    console.log('sending new status for left sign');
+    socket.emit('go', {'data': '{"drum": 0, "index": ' + $('lineLeft').val() + '}'});
+    socket.emit('go', {'data': '{"drum": 1, "index": ' + $('destLeft').val() + '}'});
+    socket.emit('go', {'data': '{"drum": 2, "index": ' + $('descLeft').val() + '}'});
+
+    var rgbhex = $('#colorRGBLeft').val();
+    var r = parseInt(rgbhex.substring(1, 3), 16);
+    var g = parseInt(rgbhex.substring(3, 5), 16);
+    var b = parseInt(rgbhex.substring(5, 7), 16);
+    var ww = parseInt(255 * $('#colorWWLeft').val());
+    socket.emit('light', {'data': '{"r": ' + r + ', "g": ' + g + ', "b": ' + b + ', "ww": ' + ww + '}'});
+});
+
+setTimeout(function () {
+    socket.emit('poll');
+}, 1000);
+
+
+/*socket.on('reset', function(json) {
     console.log('resetting interface')
     $.each(json, function(leaf, leafdata) {
         $.each(leafdata, function (k, v) {
@@ -31,21 +65,7 @@ socket.on('update', function (json) {
         $('#' + leaf)[0].selectize.setValue(leafdata);
     });
     // TODO: update LED controls
-});
-
-$('#homing').submit(function(event) {
-    id = $('#homeSingleSelect').val();
-    if(id >= 0 && id <= 5) {
-        console.log('homing leave ' + id);
-        socket.emit('home', {'data': id});
-    }
-    event.preventDefault();
-});
-
-$('#homeAll').click(function() {
-    console.log('homing all leaves');
-    socket.emit('home', {'data': 'all'});
-});
+});*/
 
 /*
 // handlers for the different forms in the page
