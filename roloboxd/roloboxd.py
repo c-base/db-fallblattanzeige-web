@@ -9,17 +9,13 @@ import serial.aio
 import RPi.GPIO as GPIO
 import configparser
 import json
-import paho.mqtt.client as mqtt
+from datetime import datetime
 
 
 DRUM_CONFIGS_DIR = os.path.join(os.path.dirname(__file__), 'drum_configs')
+MAIN_CONFIG_FILENAME = os.path.join(os.path.dirname(__file__), 'roloboxd.conf')
 drums = []
-
-client = mqtt.Client(client_id="piui_roll")
-try:
-    client.connect("msggwt1.service.deutschebahn.com", 1905, 60)
-except:
-    print("Sorry mqtt connection didn't work")
+last = datetime.now()
 
 def setup():
     GPIO.setwarnings(False)
@@ -36,7 +32,6 @@ def shutdown():
     loop.close()
     GPIO.output(23, GPIO.LOW)
     GPIO.output(24, GPIO.LOW)
-
 
 def get_drum_by_address(addr):
     global drums
@@ -68,7 +63,6 @@ class Drum(object):
         """
         self.current_page = page
         #publsih page to mqtt 
-        client.publish("PIUI/display", payload = page, qos=0, retain=False)
 
     def get_available_pages(self):
         """
@@ -103,7 +97,6 @@ class Drum(object):
 
         return None 
 
-    
     def __repr__(self):
         return '<Drum name={} addr={} pages={}>'.format(self.name, self.address, self.pages)
 
@@ -116,24 +109,24 @@ def read_strings(filename):
     return strings
 
 def iterate_drum_configs():
-    drums = []
-    for root, dirs, files in os.walk(DRUM_CONFIGS_DIR, topdown=False):
-        for name in files:
-            full_path = os.path.join(root, name)
-            basename, ext = os.path.splitext(name)
-            if ext == '.conf':
-                print('found {}'.format(name))
-                config = configparser.ConfigParser()
-                config.read(full_path)
+    main_config = configparser.ConfigParser()
+    main_config.read(MAIN_CONFIG_FILENAME)
+    drum_names = main_config.get('Drums', 'names').split(',')
+    
+    for name in drum_names:
+        full_path = os.path.join(DRUM_CONFIGS_DIR, '{}.conf'.format(name))
+        print('found {}'.format(name))
+        config = configparser.ConfigParser()
+        config.read(full_path)
+        root = os.path.dirname(full_path)
+        strings_path = os.path.join(DRUM_CONFIGS_DIR, '{}.strings'.format(name))
+        strings = read_strings(strings_path)
 
-                strings_path = os.path.join(root, '{}.strings'.format(basename))
-                strings = read_strings(strings_path)
-
-                d = Drum(config.get('Drum', 'name'), config.get('Drum', 'address'), 
-                         config.getint('Drum', 'pages'), config.get('Drum', 'sensor_shift'), 
-                         strings)
+        d = Drum(config.get('Drum', 'name'), config.get('Drum', 'address'), 
+                 config.getint('Drum', 'pages'), config.get('Drum', 'sensor_shift'), 
+                 strings)
             
-                drums.append(d)
+        drums.append(d)
     return sorted(drums, key=lambda x: x.address)
 
 
@@ -146,18 +139,32 @@ class RoloboxProtocol(asyncio.Protocol):
 
     def data_received(self, data):
         global drums
+        global last
         print('{}: {!r}'.format(self.transport.get_extra_info('peername'), data.decode()))
         msg = data.decode().strip()
         if msg == 'status':
             status = [d.get_status() for d in drums]
             json_status = json.dumps(status) + '\n'
             self.transport.write(json_status.encode('utf-8'))
+            return
+        elif msg == 'displays':
+            disp = [{"name": "vorne", "drums": [1, 2, 3]}]
+            json_disp = json.dumps(disp) + '\n'
+            self.transport.write(json_disp.encode('utf-8'))
+            return
+        elif msg == 'last':
+            disp = {"changed": str(last)}
+            json_disp = json.dumps(disp) + '\n'
+            self.transport.write(json_disp.encode('utf-8'))
+            return
         elif msg.startswith('labels'):
             cmd, address = msg.split(' ', 1)
             drum = get_drum_by_address(int(address))
             json_status = json.dumps(drum.get_available_pages()) + "\n"
             self.transport.write(json_status.encode('utf-8'))
+            return
         elif msg.startswith('go'):
+            last = datetime.now()
             cmd, address, index = msg.split(' ', 2)
             drum = get_drum_by_address(int(address))
             try:
@@ -175,6 +182,12 @@ class RoloboxProtocol(asyncio.Protocol):
                 data = '{}/{}/0\n'.format(int(address), drum.sensor_shift)
                 data += '{}/{}/{}\n'.format(int(address), drum.sensor_shift, adv)
             asyncio.async(self.send_message(data.encode('utf-8')))
+            return
+        elif msg.startswith("light"):
+            l, v = msg.split(" ", 1)
+            lm = v + "\n"
+            asyncio.async(self.send_light(lm.encode("utf-8")))
+            return
         else:
             address, advance_pages = msg.split('/', 1)
             address = int(address)
@@ -190,11 +203,17 @@ class RoloboxProtocol(asyncio.Protocol):
 
             drum.advance_pages(advance_pages)
             asyncio.async(self.send_message(data))
+            return
 
     @asyncio.coroutine
     def send_message(self, message):
         print('Sending to serial: {!r}'.format(message))
         serial_proto[0].write(message)
+
+    @asyncio.coroutine
+    def send_light(self, message):
+        print('Sending to light: {!r}'.format(message))
+        light_proto[0].write(message)
         
     def connection_lost(self, exc):
         print('The server closed the connection')
@@ -219,6 +238,12 @@ loop = asyncio.get_event_loop()
 socket_coroutine = loop.create_server(RoloboxProtocol, '0.0.0.0', 8888)
 socket_proto = loop.run_until_complete(socket_coroutine)
 print('Serving on %s:%d' % socket_proto.sockets[0].getsockname())
+
+try:
+    light_coroutine = serial.aio.create_serial_connection(loop, SerialProtocol, '/dev/ttyUSB0', baudrate=9600)
+    light_proto = loop.run_until_complete(light_coroutine)
+except serial.serialutil.SerialException as e:
+    print(e)
 
 try:
     serial_coroutine = serial.aio.create_serial_connection(loop, SerialProtocol, '/dev/ttyAMA0', baudrate=9600)
