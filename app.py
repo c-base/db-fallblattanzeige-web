@@ -2,7 +2,6 @@
 # coding: utf-8
 # vim: ts=4:et
 
-import q
 import time
 import json
 import logging
@@ -42,7 +41,6 @@ def index():
     return render_template('index.html')
 
 
-@q.t
 def send_command(command, wait=True):
     """
     Sends a command to the socket of the control daemon.
@@ -93,7 +91,6 @@ def handle_home_event(drum):
 
 
 @SOCKETIO.on('resetme')
-@q.t
 def handle_resetme_event(jsonr):
     """
     Resets the content of a web client.
@@ -103,34 +100,28 @@ def handle_resetme_event(jsonr):
     for i in [1,2,3,4,5,6]:
         drum = send_command('labels {}'.format(i))
         labels[i] = drum
-    q.q(labels)
     emit('reset', ({'labels': labels}, jsonr))
 
 
 @SOCKETIO.on('updateme')
-@q.t
 def handle_updateme_event(jsonr):
     """
     Resets the content of a web client.
     """
     LOGGER.info('[%s] wants fresh content' % request.remote_addr)
     status = send_command('status')
-    q.q(status)
     emit('update', ({'status': status}, jsonr))
 
 
 @SOCKETIO.on('changeme')
-@q.t
 def handle_changeme_event(jsonr):
     """
     Resets the content of a web client.
     """
-    q.q(jsonr)
     LOGGER.info('[%s] wants fresh content' % request.remote_addr)
     for address, value in jsonr.items():
 	    status = send_command('go {} {}'.format(address, value), wait=False)
     status = send_command('status')
-    q.q(status)
     emit('update', ({'status': status}, jsonr), broadcast=True)
 
 
