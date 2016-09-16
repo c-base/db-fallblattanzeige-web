@@ -246,6 +246,7 @@ except serial.serialutil.SerialException as e:
     print(e)
 
 try:
+    #serial_coroutine = serial.aio.create_serial_connection(loop, SerialProtocol, '/dev/serial0', baudrate=9600)
     serial_coroutine = serial.aio.create_serial_connection(loop, SerialProtocol, '/dev/ttyAMA0', baudrate=9600)
     serial_proto = loop.run_until_complete(serial_coroutine)
     loop.run_forever()
