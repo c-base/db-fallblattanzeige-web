@@ -31,7 +31,7 @@ LOGGER.addHandler(ch)
 
 HOSTS = {
         'alice': "127.0.0.1",
-        'bob': "fe80::ba27:ebff:fe43:8140",
+        'bob': "10.0.0.155",
         }        
 
 
@@ -56,18 +56,18 @@ def send_command(hostname, command, wait=True):
     :return: False or error message
     :rtype: str
     """
-    print("HOSTNAME:", hostname)
+    # print("HOSTNAME:", hostname)
     res = socket.getaddrinfo(HOSTS[hostname], 8888, socket.AF_UNSPEC, socket.SOCK_STREAM, 0, socket.AI_PASSIVE)
     family, socktype, proto, canonname, sockaddr = res[0]
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    print(res[0])
+    # print(res[0])
     sock.connect(sockaddr)
     sock.send('{}\n'.format(command).encode('utf-8'))
     if wait == False:
         return ''
     data = sock.recv(8192)
     sock.close()
-    print('Socket-Response: {}'.format(data))
+    # print('Socket-Response: {}'.format(data))
     decoded = json.loads(data.decode('utf-8'))
     return decoded
 
@@ -118,9 +118,13 @@ def handle_updateme_event(jsonr):
     """
     Resets the content of a web client.
     """
+    global HOSTS
+    for host, addr in HOSTS.items():
+        print("{} -> {}".format(host, addr))
+        print("Getting status from {}".format(host))
+        status = send_command(host, 'status')
+        emit('update', ({'hostname': host, 'status': status}, jsonr))
     LOGGER.info('[%s] wants fresh content' % request.remote_addr)
-    status = send_command('alice', 'status')
-    emit('update', ({'status': status}, jsonr))
 
 
 @SOCKETIO.on('changeme')
@@ -150,7 +154,7 @@ def handle_changeme_event(jsonr):
     print("CMD: {}".format(cmd))
     send_command(hostname, cmd, wait=False)
     status = send_command(hostname, 'status')
-    emit('update', ({'status': status}, jsonr), broadcast=True)
+    emit('update', ({'hostname': hostname, 'status': status}, jsonr), broadcast=True)
 
 
 @SOCKETIO.on('go')

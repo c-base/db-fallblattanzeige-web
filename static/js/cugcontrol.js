@@ -28,29 +28,33 @@ socket.on('reset', function (json) {
         // refresh the select
         sel.refreshOptions(false);
     });
-    
-   socket.emit('updateme', {});
+    socket.emit('updateme', {});
 });
 
 socket.on('update', function(json) {
     console.log('got update. refreshing stuff..');
+    console.log(json);
     var status = json['status'];
+    var hostname = json['hostname'];
+    var form = $("form[data-hostname='"+ hostname +"']");
     $.each(status, function(i, el) {
         var address = el.address;
         if (address == 'ww') {
             var value = Math.round(el.value/255 * 100);
-            $("input[data-address='" + address + "']").slider('setValue', value);
+            $(form).find("input[data-address='" + address + "']").slider('setValue', value);
             return;
         }
         else if (address == 'rgb') {
             var value = el.value;
-            $("input[data-address='" + address + "']").val(value);
+            $(form).find("input[data-address='" + address + "']").val(value);
             return;
         }
         var value = el.current_page;
-        var sel = $("select[data-address='" + address + "']")[0].selectize
-        sel.addItem(value, true);
-        sel.refreshItems();
+        $(form).find("select[data-address='" + address + "']").each(function(i, el) {
+		var sel = el.selectize;
+        	sel.addItem(value, true);
+        	sel.refreshItems();
+	});
     });
     console.log(status);
 });
