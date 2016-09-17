@@ -16,6 +16,9 @@ DRUM_CONFIGS_DIR = os.path.join(os.path.dirname(__file__), 'drum_configs')
 MAIN_CONFIG_FILENAME = os.path.join(os.path.dirname(__file__), 'roloboxd.conf')
 ME = 'alice'
 drums = []
+
+# colors: R, G, B, WW
+lights = [0, 0,0, 0]
 last = datetime.now()
 
 def setup():
@@ -141,10 +144,13 @@ class RoloboxProtocol(asyncio.Protocol):
     def data_received(self, data):
         global drums
         global last
+        global lights        
         print('{}: {!r}'.format(self.transport.get_extra_info('peername'), data.decode()))
         msg = data.decode().strip()
         if msg == 'status':
             status = [d.get_status() for d in drums]
+            status = status + [{'address': 'rgb', 'value': '#{:02x}{:02x}{:02x}'.format(*lights)}]
+            status = status + [{'address': 'ww', 'value': '{}'.format(lights[3])}]
             json_status = json.dumps(status) + '\n'
             self.transport.write(json_status.encode('utf-8'))
             return
@@ -167,8 +173,6 @@ class RoloboxProtocol(asyncio.Protocol):
         elif msg.startswith('go'):
             last = datetime.now()
             cmd, address, index = msg.split(' ', 2)
-            # throw away the hostname
-            address = address.split(':', 1)[1]
             drum = get_drum_by_address(int(address))
             try:
                 index = int(index)
@@ -187,9 +191,10 @@ class RoloboxProtocol(asyncio.Protocol):
             asyncio.async(self.send_message(data.encode('utf-8')))
             return
         elif msg.startswith("light"):
-            l, v = msg.split(" ", 1)
-            lm = v + "\n"
-            asyncio.async(self.send_light(lm.encode("utf-8")))
+            l, values = msg.split(" ", 1)
+            lights = [int(val) for val in values.split(" ", 4)]
+            light_msg = values + "\n"
+            asyncio.async(self.send_light(light_msg.encode("utf-8")))
             return
         else:
             address, advance_pages = msg.split('/', 1)

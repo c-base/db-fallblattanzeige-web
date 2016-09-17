@@ -69,12 +69,6 @@ def send_command(hostname, command, wait=True):
     sock.close()
     print('Socket-Response: {}'.format(data))
     decoded = json.loads(data.decode('utf-8'))
-    for i in decoded:
-        try:
-            num = i['address']
-            i['address'] = "{}:{}".format(hostname, num)
-        except:
-            pass
     return decoded
 
 @SOCKETIO.on('connect')
@@ -115,7 +109,7 @@ def handle_resetme_event(jsonr):
     labels = {}
     for i in [1,2,3,4,5,6]:
         drum = send_command('alice', 'labels {}'.format(i))
-        labels['alice:{}'.format(i)] = drum
+        labels[i] = drum
     emit('reset', ({'labels': labels}, jsonr))
 
 
@@ -138,28 +132,24 @@ def handle_changeme_event(jsonr):
     
     # light: R, G, B, WW 
     light = [None, None, None, None]
-    light_host = None
+    hostname = jsonr['hostname']
     for address, value in jsonr.items():
-        hostname, drum = address.split(':', 1)
+        drum = address
         print("DRUM {}\n".format(drum))
         if drum == 'rgb':
             # decode the color string light "#ffeecc" in to integer components
             light[0:3] = int(value[1:3],16), int(value[3:5], 16), int(value[5:7], 16)
-            light_host = hostname
             print("HORST", hostname)
-            print("LHORST", light_host)
         elif drum == 'ww':
             # warm-white is given in percent. Convert to 0-255 range.
             light[3] = int(round(255 * (float(value) / 100.0)))
-            light_host = hostname
             print("HORST", hostname)
-            print("LHORST", light_host)
         else:
             send_command(hostname, 'go {} {}'.format(address, value), wait=False)
     cmd = 'light ' + ' '.join([str(x) for x in light])
     print("CMD: {}".format(cmd))
-    send_command(light_host, cmd, wait=False)
-    status = send_command(light_host, 'status')
+    send_command(hostname, cmd, wait=False)
+    status = send_command(hostname, 'status')
     emit('update', ({'status': status}, jsonr), broadcast=True)
 
 

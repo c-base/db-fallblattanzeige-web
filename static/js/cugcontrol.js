@@ -18,7 +18,7 @@ socket.on('reset', function (json) {
     $("select[data-address]").each(function(i, el) {
         var address = $(el).attr('data-address');
         var sel = el.selectize;
-	    sel.clearOptions();
+        sel.clearOptions();
         for (var i=0; i < labels[address].length; i++) {
 	        var label = labels[address][i];
 	        if(label.label != '') {
@@ -28,7 +28,8 @@ socket.on('reset', function (json) {
         // refresh the select
         sel.refreshOptions(false);
     });
-    socket.emit('updateme', {});
+    
+   socket.emit('updateme', {});
 });
 
 socket.on('update', function(json) {
@@ -36,6 +37,16 @@ socket.on('update', function(json) {
     var status = json['status'];
     $.each(status, function(i, el) {
         var address = el.address;
+        if (address == 'ww') {
+            var value = Math.round(el.value/255 * 100);
+            $("input[data-address='" + address + "']").slider('setValue', value);
+            return;
+        }
+        else if (address == 'rgb') {
+            var value = el.value;
+            $("input[data-address='" + address + "']").val(value);
+            return;
+        }
         var value = el.current_page;
         var sel = $("select[data-address='" + address + "']")[0].selectize
         sel.addItem(value, true);
@@ -54,47 +65,22 @@ $('#reset').click(function () {
     socket.emit('reset', {'data': null});
 });
 
-$('#signLeftGo').click(function (event) {
-    //socket.emit('go', {'data': '{"drum": 0, "index": ' + $('lineLeft').val() + '}'});
-    //socket.emit('go', {'data': '{"drum": 1, "index": ' + $('destLeft').val() + '}'});
-    //socket.emit('go', {'data': '{"drum": 2, "index": ' + $('descLeft').val() + '}'});
 
-    //var rgbhex = $('#colorRGBLeft').val();
-    //var r = parseInt(rgbhex.substring(1, 3), 16);
-    //var g = parseInt(rgbhex.substring(3, 5), 16);
-    //var b = parseInt(rgbhex.substring(5, 7), 16);
-    //var ww = parseInt(255 * $('#colorWWLeft').val());
-    //socket.emit('light', {'data': '{"r": ' + r + ', "g": ' + g + ', "b": ' + b + ', "ww": ' + ww + '}'});
-
+$('.apply-btn').click(function (event) {
     event.preventDefault()
-    console.log('sending new status for left sign');
     var data = {};
-    $("#leftform select[data-address]").each(function(i, el) {
+    var enclosing_form = $(event.target).closest("form");
+    data['hostname'] = $(enclosing_form).attr('data-hostname');
+    console.log('sending new status for left sign to hostname ' + data.hostname);
+    $(enclosing_form).find("select[data-address]").each(function(i, el) {
         var address = $(el).attr('data-address');
         var sel = el.selectize;
         var value = sel.getValue();
         data[address] = value;
     });
-	
-    data[$("#colorRGBLeft").attr("data-address")] = $("#colorRGBLeft").val();
-    data[$("#colorWWLeft").attr("data-address")] = $("#colorWWLeft").val();
-    console.log(data);
-    socket.emit('changeme', data);
-    return false;
-});
-
-$('#signRightGo').click(function(event) {
-    event.preventDefault()
-    console.log('sending new status for right sign');
-    var data = {};
-    $("#rightform select[data-address]").each(function(i, el) {
-        var address = $(el).attr('data-address');
-        var sel = el.selectize;
-        var value = sel.getValue();
-        data[address] = value;
+    $(enclosing_form).find("input[data-address]").each(function(i, el) {
+        data[$(el).attr("data-address")] = $(el).val();
     });
-    data[$("#colorRGBRight").attr("data-address")] = $("#colorRGBRight").val();
-    data[$("#colorWWRight").attr("data-address")] = $("#colorWWRight").val();
     console.log(data);
     socket.emit('changeme', data);
     return false;
