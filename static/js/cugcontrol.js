@@ -14,7 +14,7 @@ socket.on('connected', function() {
 socket.on('reset', function (json) {
     console.log('got reset. refreshing stuff..');
     var labels = json['labels'];
-    
+    console.log(json);
     $("select[data-address]").each(function(i, el) {
         var address = $(el).attr('data-address');
         var sel = el.selectize;
@@ -75,6 +75,10 @@ $('#signLeftGo').click(function (event) {
         var value = sel.getValue();
         data[address] = value;
     });
+	
+    data[$("#colorRGBLeft").attr("data-address")] = $("#colorRGBLeft").val();
+    data[$("#colorWWLeft").attr("data-address")] = $("#colorWWLeft").val();
+    console.log(data);
     socket.emit('changeme', data);
     return false;
 });
@@ -89,6 +93,9 @@ $('#signRightGo').click(function(event) {
         var value = sel.getValue();
         data[address] = value;
     });
+    data[$("#colorRGBRight").attr("data-address")] = $("#colorRGBRight").val();
+    data[$("#colorWWRight").attr("data-address")] = $("#colorWWRight").val();
+    console.log(data);
     socket.emit('changeme', data);
     return false;
 });

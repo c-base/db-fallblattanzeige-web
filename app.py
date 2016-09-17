@@ -29,6 +29,12 @@ LOGGER.addHandler(fh)
 LOGGER.addHandler(ch)
 
 
+HOSTS = {
+        'alice': "127.0.0.1",
+        'bob': "fe80::ba27:ebff:fe43:8140",
+        }        
+
+
 @APP.route('/')
 def index():
     """
@@ -41,7 +47,7 @@ def index():
     return render_template('index.html')
 
 
-def send_command(command, wait=True):
+def send_command(hostname, command, wait=True):
     """
     Sends a command to the socket of the control daemon.
 
@@ -50,8 +56,12 @@ def send_command(command, wait=True):
     :return: False or error message
     :rtype: str
     """
+    print("HOSTNAME:", hostname)
+    res = socket.getaddrinfo(HOSTS[hostname], 8888, socket.AF_UNSPEC, socket.SOCK_STREAM, 0, socket.AI_PASSIVE)
+    family, socktype, proto, canonname, sockaddr = res[0]
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(('localhost', 8888))
+    print(res[0])
+    sock.connect(sockaddr)
     sock.send('{}\n'.format(command).encode('utf-8'))
     if wait == False:
         return ''
@@ -59,6 +69,12 @@ def send_command(command, wait=True):
     sock.close()
     print('Socket-Response: {}'.format(data))
     decoded = json.loads(data.decode('utf-8'))
+    for i in decoded:
+        try:
+            num = i['address']
+            i['address'] = "{}:{}".format(hostname, num)
+        except:
+            pass
     return decoded
 
 @SOCKETIO.on('connect')
@@ -98,8 +114,8 @@ def handle_resetme_event(jsonr):
     LOGGER.info('[%s] wants fresh content' % request.remote_addr)
     labels = {}
     for i in [1,2,3,4,5,6]:
-        drum = send_command('labels {}'.format(i))
-        labels[i] = drum
+        drum = send_command('alice', 'labels {}'.format(i))
+        labels['alice:{}'.format(i)] = drum
     emit('reset', ({'labels': labels}, jsonr))
 
 
@@ -109,7 +125,7 @@ def handle_updateme_event(jsonr):
     Resets the content of a web client.
     """
     LOGGER.info('[%s] wants fresh content' % request.remote_addr)
-    status = send_command('status')
+    status = send_command('alice', 'status')
     emit('update', ({'status': status}, jsonr))
 
 
@@ -119,9 +135,31 @@ def handle_changeme_event(jsonr):
     Resets the content of a web client.
     """
     LOGGER.info('[%s] wants fresh content' % request.remote_addr)
+    
+    # light: R, G, B, WW 
+    light = [None, None, None, None]
+    light_host = None
     for address, value in jsonr.items():
-	    status = send_command('go {} {}'.format(address, value), wait=False)
-    status = send_command('status')
+        hostname, drum = address.split(':', 1)
+        print("DRUM {}\n".format(drum))
+        if drum == 'rgb':
+            # decode the color string light "#ffeecc" in to integer components
+            light[0:3] = int(value[1:3],16), int(value[3:5], 16), int(value[5:7], 16)
+            light_host = hostname
+            print("HORST", hostname)
+            print("LHORST", light_host)
+        elif drum == 'ww':
+            # warm-white is given in percent. Convert to 0-255 range.
+            light[3] = int(round(255 * (float(value) / 100.0)))
+            light_host = hostname
+            print("HORST", hostname)
+            print("LHORST", light_host)
+        else:
+            send_command(hostname, 'go {} {}'.format(address, value), wait=False)
+    cmd = 'light ' + ' '.join([str(x) for x in light])
+    print("CMD: {}".format(cmd))
+    send_command(light_host, cmd, wait=False)
+    status = send_command(light_host, 'status')
     emit('update', ({'status': status}, jsonr), broadcast=True)
 
 

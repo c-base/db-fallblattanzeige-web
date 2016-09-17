@@ -14,6 +14,7 @@ from datetime import datetime
 
 DRUM_CONFIGS_DIR = os.path.join(os.path.dirname(__file__), 'drum_configs')
 MAIN_CONFIG_FILENAME = os.path.join(os.path.dirname(__file__), 'roloboxd.conf')
+ME = 'alice'
 drums = []
 last = datetime.now()
 
@@ -166,6 +167,8 @@ class RoloboxProtocol(asyncio.Protocol):
         elif msg.startswith('go'):
             last = datetime.now()
             cmd, address, index = msg.split(' ', 2)
+            # throw away the hostname
+            address = address.split(':', 1)[1]
             drum = get_drum_by_address(int(address))
             try:
                 index = int(index)
@@ -236,6 +239,7 @@ drums = iterate_drum_configs()
 setup()
 loop = asyncio.get_event_loop()
 socket_coroutine = loop.create_server(RoloboxProtocol, '0.0.0.0', 8888)
+# socket_coroutine = loop.create_server(RoloboxProtocol, '::', 8888)
 socket_proto = loop.run_until_complete(socket_coroutine)
 print('Serving on %s:%d' % socket_proto.sockets[0].getsockname())
 
