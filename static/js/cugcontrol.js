@@ -47,6 +47,7 @@ socket.on('update', function(json) {
         else if (address == 'rgb') {
             var value = el.value;
             $(form).find("input[data-address='" + address + "']").val(value);
+	    $(form).find(".bluebox").css('color', value);
             return;
         }
         var value = el.current_page;

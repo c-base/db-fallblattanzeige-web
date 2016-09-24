@@ -24,10 +24,11 @@ last = datetime.now()
 def setup():
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
+    GPIO.setup(4, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
     GPIO.setup(23, GPIO.OUT)#, pull_up_down=GPIO.PUD_DOWN)
     GPIO.setup(24, GPIO.OUT)#, pull_up_down=GPIO.PUD_DOWN)
-    GPIO.output(23, GPIO.HIGH)
-    GPIO.output(24, GPIO.HIGH)
+    GPIO.output(23, GPIO.LOW)
+    GPIO.output(24, GPIO.LOW)
 
 def shutdown():
     # Close the server
@@ -216,7 +217,11 @@ class RoloboxProtocol(asyncio.Protocol):
     @asyncio.coroutine
     def send_message(self, message):
         print('Sending to serial: {!r}'.format(message))
-        serial_proto[0].write(message)
+        GPIO.output(23, GPIO.HIGH)
+        GPIO.output(24, GPIO.HIGH)
+        yield from serial_proto[0].write(message)
+        GPIO.output(23, GPIO.LOW)
+        GPIO.output(24, GPIO.LOW)
 
     @asyncio.coroutine
     def send_light(self, message):
@@ -239,6 +244,22 @@ class SerialProtocol(asyncio.Protocol):
         print('port closed')
         asyncio.get_event_loop().stop()
 
+@asyncio.coroutine
+def watch_button(loop):
+    last_pushed = -1
+    last_state = 0
+    while True:
+        curr_state = GPIO.input(4)
+        if curr_state == 1 and last_state == 0:
+            curr_time = loop.time()
+            if curr_time - last_pushed > 0.6:
+                print("PUSH BUTTON +++++++++++++++++++++++++++++++++++")
+            last_pushed = loop.time()
+        if curr_state == 0 and last_state == 1:
+            print("RELEASE BUTTON")
+        last_state = curr_state 
+        yield from asyncio.sleep(0.01)
+
 
 drums = iterate_drum_configs()
 setup()
@@ -257,6 +278,7 @@ except serial.serialutil.SerialException as e:
 try:
     serial_coroutine = serial.aio.create_serial_connection(loop, SerialProtocol, '/dev/ttyAMA0', baudrate=9600)
     serial_proto = loop.run_until_complete(serial_coroutine)
+    button_watcher = loop.run_until_complete(watch_button(loop))
     loop.run_forever()
 except serial.serialutil.SerialException as e:
     print(e)

@@ -22,6 +22,25 @@
             #colorww2Slider {
                 width: 100%;
             }
+            .bluebox {
+                -webkit-box-shadow: inset 0px 0px 30px 10px; 
+                color: #ffffff;
+                border: 15px solid #002674;
+                border-radius: 25px;
+                padding: 15px 10px 5px 10px;
+            }
+
+            .bluebox .control-label {
+                color: #333;
+            }
+            
+            .slider-track {
+                margin-left: 10px;
+            }
+
+            h4 {
+               margin-left: 25px;
+            }
         </style>
 
         <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -33,128 +52,142 @@
     </head>
     <body>
         <div class="container">
-            <h1>Cyber-Steuerung v0.1.0</h1>
-
+            <div class="row" style="border-bottom: 1px solid #ccc;">
+                <div class="col-xs-4">
+                    <img src="/static/img/mindbox_logo_v2.png" alt="minDBox-Logo" style="margin-right: 20px; margin-top: 18px;">
+                    </div>
+                <div class="col-xs-8 text-right">
+                    <h2>Zugzielanzeiger</h2>
+                </div>
+            </div>
             <div class="row">
-                <div class="col-lg-6">
-                    <form class="form-horizontal" id="leftform" data-hostname="alice">
+                 <form class="form" id="leftform" data-hostname="alice">
+                    
+                     <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12" >
+                        <div style="height: 100px;" class="hidden-xs"></div>
+                        <h4>Anzeige links</h4>
+                        <div class="bluebox" style="">
                         <fieldset>
-                            <legend>Anzeige links</legend>
 
-                            <div class="form-group">
-                                <label class="col-md-4 control-label" for="lineLeft">Linie</label>
-                                <div class="col-md-8">
-                                    <select id="lineLeft" name="lineLeft" class="form-control" data-address="3">
-                                    </select><!-- #line1 /.form-control -->
-                                </div><!-- /.col-md-8 -->
-                            </div><!-- /.form-group -->
-
-                            <div class="form-group">
-                                <label class="col-md-4 control-label" for="destLeft">Ziel</label>
-                                <div class="col-md-8">
-                                    <select id="destLeft" name="destLeft" class="form-control" data-address="1">
-                                    </select><!-- #selectbasic /.form-control -->
-                                </div><!-- /.col-md-8 -->
-                            </div><!-- /.form-group -->
-
-                            <div class="form-group">
-                                <label class="col-md-4 control-label" for="descLeft">Beschreibung</label>
-                                <div class="col-md-8">
+			                <div class="form-group col-xs-12">
+                                <label class="control-label" for="descLeft">Beschreibung</label>
                                     <select id="descLeft" name="descLeft" class="form-control" data-address="2">
                                     </select><!-- #selectbasic /.form-control -->
-                                </div><!-- /.col-md-8 -->
                             </div><!-- /.form-group -->
 
-                            <div class="form-group">
-                                <label class="col-md-4 control-label" for="colorRGBLeft">Beleuchtung</label>
-                                <div class="col-md-3">
+			                <div class="col-xs-4">
+				                <div class="form-group">
+                                    <label class="control-label" for="lineLeft">Linie</label>
+                                        <select id="lineLeft" name="lineLeft" class="form-control" data-address="3">
+                                        </select><!-- #line1 /.form-control -->
+			                    </div><!-- /.form-group -->
+			                </div>
+
+			                <div class="col-xs-8">
+                                <div class="form-group">
+                                    <label class="control-label" for="destLeft">Ziel</label>
+                                    <select id="destLeft" name="destLeft" class="form-control" data-address="1">
+                                    </select><!-- #selectbasic /.form-control -->
+                                </div><!-- /.form-group -->
+			                </div>
+                            
+                            <div class="col-xs-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="colorRGBLeft">RGB</label>
                                     <input type="color" id="colorRGBLeft" class="form-control" value="#88cde8" data-address="rgb" />
-                                </div>
-                                <div class="col-md-3">
-                                    <input id="colorWWLeft" data-slider-id='colorWWLeftSlider' type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="127" data-address="ww" />
-                                </div>
-                                <div class="col-md-3 col-md-offset-4">
-                                    <p><small>RGB</small></p>
-                                </div>
-                                <div class="col-md-3">
-                                    <p><small>WW</small></p>
-                                </div>
-                            </div>
+                                </div><!-- /.form-group -->
+                            </div><!-- /.col-xs-6-->
+
+                            <div class="col-xs-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="colorRGBLeft">Warmweiß</label><br />
+                                    <input id="colorWWLeft" data-slider-id='colorWWLeftSlider' type="text" 
+                                           data-slider-min="0" data-slider-max="100" data-slider-step="1" 
+                                           data-slider-value="127" data-address="ww" />
+                                </div><!-- /.form-group -->
+                            </div><!-- /.col-xs-6-->
 
                             <div class="form-group">
                                 <label class="col-md-4 control-label" for="signLeftActions"></label>
                                 <div class="col-md-8">
                                     <button id="signLeftGo" name="signLeftActions" class="btn btn-primary apply-btn">Anwenden</button>
-                                    <button id="randLeft" name="randLeft" class="btn btn-default">Zufällig</button>
+                                    <!--<button id="randLeft" name="randLeft" class="btn btn-default">Zufällig</button>-->
                                 </div><!-- /.col-md-4 -->
                             </div><!-- /.form-group -->
                         </fieldset>
-                    </form><!-- /.form-horizontal -->
-                </div><!-- /.col-lg-6 -->
-                <div class="col-lg-6">
-                    <form class="form-horizontal" id="rightform" data-hostname="bob">
+                        </div><!-- /.bluebox -->
+                    </div><!-- /.col-lg-6 -->
+                </form><!-- /.form-horizontal -->
+
+                <form class="form" id="rightform" data-hostname="bob">
+                     <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12" style="margin-top: 0px;"> 
+                        <h4>Anzeige rechts</h4>
+                        <div class="bluebox" style="">
                         <fieldset>
-                            <legend>Anzeige rechts</legend>
 
-                            <div class="form-group">
-                                <label class="col-md-4 control-label" for="lineRight">Linie</label>
-                                <div class="col-md-8">
-                                    <select id="lineRight" name="lineRight" class="form-control" data-address="6">
-                                    </select><!-- #line2 /.form-control -->
-                                </div><!-- /.col-md-8 -->
-                            </div><!-- /.form-group -->
-
-                            <div class="form-group">
-                                <label class="col-md-4 control-label" for="destRight">Ziel</label>
-                                <div class="col-md-8">
-                                    <select id="destRight" name="destRight" class="form-control" data-address="4">
-                                    </select><!-- #selectbasic /.form-control -->
-                                </div><!-- /.col-md-8 -->
-                            </div><!-- /.form-group -->
-
-                            <div class="form-group">
-                                <label class="col-md-4 control-label" for="descRight">Beschreibung</label>
-                                <div class="col-md-8">
+			                <div class="form-group col-xs-12">
+                                <label class="control-label" for="descRight">Beschreibung</label>
                                     <select id="descRight" name="descRight" class="form-control" data-address="5">
                                     </select><!-- #selectbasic /.form-control -->
-                                </div><!-- /.col-md-8 -->
                             </div><!-- /.form-group -->
 
-                            <div class="form-group">
-                                <label class="col-md-4 control-label" for="colorRGBRight">Beleuchtung</label>
-                                <div class="col-md-3">
+			                <div class="col-xs-4">
+				                <div class="form-group">
+                                    <label class="control-label" for="lineRight">Linie</label>
+                                        <select id="lineRight" name="lineRight" class="form-control" data-address="6">
+                                        </select><!-- #line1 /.form-control -->
+			                    </div><!-- /.form-group -->
+			                </div>
+
+			                <div class="col-xs-8">
+                                <div class="form-group">
+                                    <label class="control-label" for="destLeft">Ziel</label>
+                                    <select id="destRight" name="destRight" class="form-control" data-address="4">
+                                    </select><!-- #selectbasic /.form-control -->
+                                </div><!-- /.form-group -->
+			                </div>
+                            
+                            <div class="col-xs-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="colorRGBRight">RGB</label>
                                     <input type="color" id="colorRGBRight" class="form-control" value="#88cde8" data-address="rgb" />
-                                </div>
-                                <div class="col-md-3">
-                                    <input id="colorWWRight" data-slider-id='colorWWRightSlider' type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="50" data-address="ww" />
-                                </div>
-                                <div class="col-md-3 col-md-offset-4">
-                                    <p><small>RGB</small></p>
-                                </div>
-                                <div class="col-md-3">
-                                    <p><small>WW</small></p>
-                                </div>
-                            </div>
+                                </div><!-- /.form-group -->
+                            </div><!-- /.col-xs-6-->
+
+                            <div class="col-xs-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="colorRGBRight">Warmweiß</label><br />
+                                    <input id="colorWWRight" data-slider-id='colorWWRightSlider' type="text" 
+                                           data-slider-min="0" data-slider-max="100" data-slider-step="1" 
+                                           data-slider-value="127" data-address="ww" />
+                                </div><!-- /.form-group -->
+                            </div><!-- /.col-xs-6-->
 
                             <div class="form-group">
                                 <label class="col-md-4 control-label" for="signRightActions"></label>
                                 <div class="col-md-8">
                                     <button id="signRightGo" name="signRightActions" class="btn btn-primary apply-btn">Anwenden</button>
-                                    <button id="randRight" name="randRight" class="btn btn-default">Zufällig</button>
+                                    <!--<button id="randLeft" name="randLeft" class="btn btn-default">Zufällig</button>-->
                                 </div><!-- /.col-md-4 -->
                             </div><!-- /.form-group -->
                         </fieldset>
-                    </form><!-- /.form-horizontal -->
-                </div><!-- /.col-lg-6 -->
+                        </div><!-- /.bluebox -->
+                    </div><!-- /.col-lg-6 -->
+                </form><!-- /.form-horizontal -->
             </div><!-- /.row -->
-            <hr />
-            <div class="row">
-                <div class="col-lg-12">
-                    <h1>Maintenance</h1>
-                    <button id="home" type="button" class="btn btn-primary">Home</button>
-                    <button id="reset" type="button" class="btn btn-primary">Reset</button>
-                </div><!-- /.col-lg-12 -->
-            </div><!-- /.row -->
+
+			<hr />
+	    	<div class="row">
+            	<div class="col-xs-3 col-xs-offset-1 text-right" style="">
+	 				<img class="img-responsive" src="/static/img/dblogo.png" alt="Deutsche Bahn-Logo">	
+             	</div><!-- /.col-lg-12 -->
+				<div class="col-xs-7 col-xs-offset-1 text-center" style="border-left: 1px solid #ccc;" >
+	         		<img class="img-responsive" src="/static/img/c-logo_claim_blue.png" alt="c-base-Logo">	
+             	</div>
+        	</div><!-- /.row -->
+
+			<hr />
+
         </div><!-- /.container -->
 
     <script src="{{ url_for('static', filename='js/jquery-2.2.4.min.js') }}"></script>
