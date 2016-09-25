@@ -1,0 +1,10 @@
+[Unit]
+Description=Rolodex Display Daemon
+After=roloboxd.service
+
+[Service]
+Type=simple
+ExecStart=/home/alarm/db-fallblattanzeige-web/roloboxd/mqtt_sender.py
+
+[Install]
+WantedBy=multi-user.target

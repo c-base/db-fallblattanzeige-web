@@ -1,4 +1,4 @@
-
+playlist.txt
 # Created by https://www.gitignore.io/api/windows,linux,osx,python,pycharm,vim,sublimetext
 
 ### Windows ###
@@ -208,3 +208,4 @@ Session.vim
 # sftp configuration file
 sftp-config.json
 
+.idea/
