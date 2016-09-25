@@ -11,6 +11,7 @@ from logging.handlers import RotatingFileHandler
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit, disconnect
 
+from greenlet import greenlet
 
 APP = Flask(__name__)
 APP.config['SECRET_KEY'] = 'secret!'
@@ -21,19 +22,32 @@ LOGGER.setLevel(logging.DEBUG)
 fh = RotatingFileHandler('fia.log', maxBytes=1024*1024*1024, backupCount=3)
 fh.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
-ch.setLevel(logging.ERROR)
+ch.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(levelname)-5s - %(name)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 fh.setFormatter(formatter)
 ch.setFormatter(formatter)
 LOGGER.addHandler(fh)
 LOGGER.addHandler(ch)
 
+# Global storage for a background thread
+thread = None
 
 HOSTS = {
         'alice': "127.0.0.1",
         'bob': "10.0.0.155",
         }        
 
+PLAYLIST = [
+        [{"hostname": "alice", "rgb": "#aa00aa", "ww": "10", "1":0, "2":0, "3":0},
+        {"hostname": "bob", "rgb": "#aa00aa", "ww": "10", "1":0, "2":0, "3":0}],
+        [{"hostname": "alice", "rgb": "#00aa00", "ww": "0", "1":0, "2":0, "3":0},
+        {"hostname": "bob", "rgb": "#00aa00", "ww": "0", "1":0, "2":0, "3":0,}]
+        ]
+
+MODE_NORMAL = 'normal'
+MODE = MODE_NORMAL
+
+POS = 0
 
 @APP.route('/')
 def index():
@@ -45,6 +59,36 @@ def index():
     """
     LOGGER.debug('rendering index.html for %s' % request.remote_addr)
     return render_template('index.html')
+
+def ack():
+    pass
+    #LOGGER.debug("PUPS")
+    #while True:
+    #    LOGGER.debug("PUPS2")
+    #    button() 
+    #   LOGGER.debug("PUPS3")
+    #    SOCKETIO.sleep(1.1)
+
+@APP.route('/button')
+def button():
+    """
+    Reacts to someone pressing THE BUTTON.
+    """
+    LOGGER.debug('Someone pressed the button.')
+    global POS
+    global APP
+    global SOCKETIO
+    global PLAYLIST
+    POS += 1
+    if POS >= len(PLAYLIST):
+        POS = 0
+    entry = PLAYLIST[POS] 
+    LOGGER.debug("entry {}".format(entry))
+    for data in entry:
+        LOGGER.debug("emit {} ".format(data))
+        changeme(data)
+        #SOCKETIO.emit('changeme', data, broadcast=True)
+    return render_template('button.html')
 
 
 def send_command(hostname, command, wait=True):
@@ -77,6 +121,9 @@ def handle_connect_event():
     A new web client established a connection.
     """
     LOGGER.info('[%s] connected' % request.remote_addr)
+    global thread
+    if thread == None:
+        thread = SOCKETIO.start_background_task(target=ack)
     emit('connected')
 
 
@@ -119,11 +166,14 @@ def handle_updateme_event(jsonr):
     Resets the content of a web client.
     """
     global HOSTS
+    global PLAYLIST
+    global POS
     for host, addr in HOSTS.items():
         print("{} -> {}".format(host, addr))
         print("Getting status from {}".format(host))
         status = send_command(host, 'status')
-        emit('update', ({'hostname': host, 'status': status}, jsonr))
+        emit('update', ({'hostname': host, 'status': status, 'playlist': PLAYLIST, 
+            'position': POS, 'mode': MODE}, jsonr))
     LOGGER.info('[%s] wants fresh content' % request.remote_addr)
 
 
@@ -132,8 +182,10 @@ def handle_changeme_event(jsonr):
     """
     Resets the content of a web client.
     """
-    LOGGER.info('[%s] wants fresh content' % request.remote_addr)
-    
+    LOGGER.info('[%s] wants changeme' % request.remote_addr)
+    changeme(jsonr)
+  
+def changeme(jsonr):
     # light: R, G, B, WW 
     light = [None, None, None, None]
     hostname = jsonr['hostname']
@@ -154,7 +206,10 @@ def handle_changeme_event(jsonr):
     print("CMD: {}".format(cmd))
     send_command(hostname, cmd, wait=False)
     status = send_command(hostname, 'status')
-    emit('update', ({'hostname': hostname, 'status': status}, jsonr), broadcast=True)
+    global PLAYLIST
+    global POS
+    SOCKETIO.emit('update', ({'hostname': hostname, 'status': status, 'mode': MODE,
+        'playlist': PLAYLIST, 'position': POS}, jsonr), broadcast=True)
 
 
 @SOCKETIO.on('go')
@@ -168,6 +223,30 @@ def handle_update_event(json):
     LOGGER.info('[%s] wants to switch drum %d to %d' % (request.remote_addr, json['drum'], json['index']))
     send_command('go %d %d' % (json['drum'], json['index']))
 
+@SOCKETIO.on('playlist')
+def handle_playlist_event(jsonr):
+    """
+    Handle events that overwrite the current playlist with a new one.
+    """
+    global PLAYLIST
+    global POS
+    new_playlist = jsonr['playlist']
+    PLAYLIST = new_playlist
+    POS = -1
+    for hostname, addr in HOSTS.items():
+        SOCKETIO.emit('update', ({'hostname': hostname, 'status': status, 'mode': MODE,
+            'playlist': PLAYLIST, 'position': POS}, jsonr), broadcast=True)
+            
+
+@SOCKETIO.on('mode')
+def handle_mode_event(jsonr):
+    global MODE
+    MODE = jsonr['mode']
+    LOGGER.info('wants to switch mode, %s' % json)
+    for hostname, addr in HOSTS.items():
+        SOCKETIO.emit('update', ({'hostname': hostname, 'status': status, 'mode': MODE, 
+            'playlist': PLAYLIST, 'position': POS}, jsonr), broadcast=True)
+        
 
 def get_update_from_drums():
     # TODO: get update
@@ -176,28 +255,5 @@ def get_update_from_drums():
     pass
 
 
-#@socketio.on('broadcast', namespace='/cyber')
-#def broadcast_message(message):
-#    session['receive_count'] = session.get('receive_count', 0) + 1
-#    emit('response', {'data': bytes(message['data'], 'utf-8'), 'count': session['receive_count']}, broadcast=True)
-
-
-#@socketio.on('disconnect', namespace='/cyber')
-#def disconnect_request():
-#    session['receive_count'] = session.get('receive_count', 0) + 1
-#    emit('response', {'data': bytes('disconnected', 'utf-8'), 'count': session['receive_count']})
-#    disconnect()
-
-
-#@socketio.on('connect', namespace='/cyber')
-#def test_connect():
-#    emit('response', {'data': bytes('connected', 'utf-8'), 'count': 0})
-
-
-#@socketio.on('disconnect', namespace='/cyber')
-#def test_disconnect():
-#    print('disconnected')
-
-
 if __name__ == '__main__':
-    SOCKETIO.run(APP)
+    SOCKETIO.run(APP, debug=True)

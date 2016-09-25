@@ -9,6 +9,7 @@ import serial.aio
 import RPi.GPIO as GPIO
 import configparser
 import json
+import urllib.request
 from datetime import datetime
 
 
@@ -244,6 +245,13 @@ class SerialProtocol(asyncio.Protocol):
         print('port closed')
         asyncio.get_event_loop().stop()
 
+def dourl(url):
+    url = 'http://localhost/button'
+    try:
+        urllib.request.urlopen(url)
+    except Exception as e:
+        print("Problem with {}: {}".format(url, e))
+ 
 @asyncio.coroutine
 def watch_button(loop):
     last_pushed = -1
@@ -254,6 +262,8 @@ def watch_button(loop):
             curr_time = loop.time()
             if curr_time - last_pushed > 0.6:
                 print("PUSH BUTTON +++++++++++++++++++++++++++++++++++")
+                future1 = loop.run_in_executor(None, dourl, 'http://www.google.com')
+                bla = yield from future1
             last_pushed = loop.time()
         if curr_state == 0 and last_state == 1:
             print("RELEASE BUTTON")

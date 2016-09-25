@@ -47,16 +47,25 @@ socket.on('update', function(json) {
         else if (address == 'rgb') {
             var value = el.value;
             $(form).find("input[data-address='" + address + "']").val(value);
-	    $(form).find(".bluebox").css('color', value);
+	        $(form).find(".bluebox").css('color', value);
             return;
         }
         var value = el.current_page;
         $(form).find("select[data-address='" + address + "']").each(function(i, el) {
-		var sel = el.selectize;
+		    var sel = el.selectize;
         	sel.addItem(value, true);
         	sel.refreshItems();
-	});
+	    });
     });
+    
+    $("#position").html(json.position);
+    var pl_html = '';
+    $.each(json.playlist, function(i, line) {
+        pl_html = pl_html + JSON.stringify(line) + '\n';
+    });
+    $('#playlist').val(pl_html);       
+
+    $('#' + json.mode).closest('label').button('toggle');
     console.log(status);
 });
 
@@ -70,11 +79,8 @@ $('#reset').click(function () {
     socket.emit('reset', {'data': null});
 });
 
-
-$('.apply-btn').click(function (event) {
-    event.preventDefault()
+var form_to_object = function(enclosing_form) {
     var data = {};
-    var enclosing_form = $(event.target).closest("form");
     data['hostname'] = $(enclosing_form).attr('data-hostname');
     console.log('sending new status for left sign to hostname ' + data.hostname);
     $(enclosing_form).find("select[data-address]").each(function(i, el) {
@@ -86,55 +92,64 @@ $('.apply-btn').click(function (event) {
     $(enclosing_form).find("input[data-address]").each(function(i, el) {
         data[$(el).attr("data-address")] = $(el).val();
     });
+    return data; 
+};
+
+$('.apply-btn').click(function (event) {
+    event.preventDefault();
+    var enclosing_form = $(event.target).closest("form");
+    var data = form_to_object(enclosing_form);
     console.log(data);
     socket.emit('changeme', data);
     return false;
 });
 
-setTimeout(function () {
-    socket.emit('poll');
-}, 1000);
+$("#expert-btn").click(function(ev) {
+    ev.preventDefault();
+    $("#expert-mode").toggle(400);
+    return false;
+});
 
+var updatePlaylist = function() {
+    var lines = $("#playlist").val().split('\n');
+    var new_playlist = [];
+    $.each(lines, function(i, el) {
+	if(el === "")
+	    return;
+	new_playlist.push(JSON.parse(el));
+    });	
+    var data = { playlist: new_playlist};
+    socket.emit('playlist', data);
+}
 
-/*socket.on('reset', function(json) {
-    console.log('resetting interface')
-    $.each(json, function(leaf, leafdata) {
-        $.each(leafdata, function (k, v) {
-            var select = $("#" + leaf)[0].selectize;
-            select.addOption({
-                text: v,
-                value: k
-            });
-            select.addItem(v)
-        });
+$("#playlist-save-btn").click(function(ev) {
+    updatePlaylist();
+    return false;
+});
+
+$("#playlist-clear-btn").click(function(ev) {
+    $("#playlist").val('');
+});
+
+$("#playlist-append-btn").click(function(ev) {
+    var line = '[';
+    $('form[data-hostname]').each(function(i, form) {
+    	var data = form_to_object(form);
+	if (i > 0) {
+	    line = line + ',';
+	}
+	line = line + JSON.stringify(data);
     });
+    line = line + ']\n';
+    var new_val = $("#playlist").val() + line;
+    $("#playlist").val(new_val);
 });
 
-socket.on('update', function (json) {
-    console.log('updating interface');
-    $.each(json, function(leaf, leafdata) {
-        $('#' + leaf)[0].selectize.setValue(leafdata);
-    });
-    // TODO: update LED controls
-});*/
+$(".mode-btn").click(function(ev) {
+    ev.preventDefault();
+    var data ={"mode": $(ev.target).find('input').attr('id'), 'bla': "blablubfasellaberrababer", 'broempf': 1234569};
+    socket.emit('mode', data);
+    return false;
+});
 
-/*
-// handlers for the different forms in the page
-// these send data to the server in a variety of ways
-$('form#broadcast').submit(function(event) {
-    socket.emit('broadcast', {data: $('#broadcast_data').val()});
-    return false;
-});
-$('form#home').submit(function(event) {
-    socket.emit('home', {data: {leave_id: $('#leave_id').val()}});
-    return false;
-});
-$('form#disconnect').submit(function(event) {
-    socket.emit('disconnect');
-    return false;
-});
-$('form#connect').submit(function(event) {
-    connect();
-    return false;
-});
-*/
+
