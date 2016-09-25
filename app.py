@@ -137,19 +137,22 @@ def send_command(hostname, command, wait=True):
     :return: False or error message
     :rtype: str
     """
-    # print("HOSTNAME:", hostname)
-    res = socket.getaddrinfo(HOSTS[hostname], 8888, socket.AF_UNSPEC, socket.SOCK_STREAM, 0, socket.AI_PASSIVE)
-    family, socktype, proto, canonname, sockaddr = res[0]
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # print(res[0])
-    sock.connect(sockaddr)
+    ip = HOSTS[hostname]
+    sock.connect((ip, 8888))
     sock.send('{}\n'.format(command).encode('utf-8'))
     if wait == False:
         return ''
-    data = sock.recv(8192)
+    buffer = b''
+    while True:
+        data = sock.recv(8192)
+        buffer = buffer + data
+        if data.endswith(b'\n'):
+            break
     sock.close()
     # print('Socket-Response: {}'.format(data))
-    decoded = json.loads(data.decode('utf-8'))
+    LOGGER.debug("=== DATA {}".format(repr(buffer)))
+    decoded = json.loads(buffer.decode('utf-8'))
     return decoded
 
 def select_random_label(hostname):
@@ -202,7 +205,7 @@ def get_labels():
 
     labels = {}
     for hostname, addr in HOSTS.items():
-        status = send_command(hostname, 'status')
+        status = send_command(hostname, 'status', True)
         LOGGER.debug('status {}: {}'.format(hostname, repr(status)))
         drum_nums = []
         for i in status:
@@ -215,7 +218,7 @@ def get_labels():
         # TODO: Make {"hostname": "alice", "address": 1} and {"hostname": "bob", "address": 1}
         # Currently the address number may only occur once, even if the drum is at different hosts.
         for i in drum_nums:
-            drum = send_command(hostname, 'labels {}'.format(i))
+            drum = send_command(hostname, 'labels {}'.format(i), True)
             labels[i] = drum
     LOGGER.debug('labels: ' + repr(labels))
     LABELS = labels
@@ -323,6 +326,11 @@ def get_update_from_drums():
 
 if __name__ == '__main__':
     LOGGER.info("Reading {}".format(PLAYLIST_FILE))
+    get_labels()
+    get_labels()
+    get_labels()
+    get_labels()
+    get_labels()
     with open(PLAYLIST_FILE, mode="r") as infh:
         for line in infh.readlines():
             PLAYLIST.append(json.loads(line))
