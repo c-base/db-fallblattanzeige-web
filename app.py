@@ -39,7 +39,7 @@ HOSTS = {
         }        
 
 PLAYLIST = [] # will be filled from playlist.txt at bootup
-
+LABELS = None
 PLAYLIST_FILE = os.path.join(os.path.realpath(os.path.dirname(__file__)), 'playlist.txt')
 
 MODE_WORKSHOP = 'workshop'
@@ -66,19 +66,32 @@ def ack():
     Background thread that is activated when the first user connects and
     used to do random stuff during party mode.
     """
+    i = 0
     while True:
-        SOCKETIO.sleep(1.0)
         if MODE == MODE_PARTY:
             LOGGER.info('PARTEY!')
             host = random.choice(list(HOSTS.keys()))
             color = random.choice(colors)
             ww = random.randint(0, 100)
             bla = {'rgb': '#{}'.format(color), 'ww': ww, 'hostname': host}
-            LOGGER.info(repr(bla))
             changeme(bla)
+            LOGGER.info("BLA:" + repr(bla))
+            if i % 20 == 0:
+                blub = {'hostname': host}
+                labels = get_labels()
+                key = random.choice(list(labels.keys()))
+                while True:
+                    selected = random.choice(labels[key])
+                    if selected['label'] != '':
+                        break
+                blub[key] = selected['index']
+                LOGGER.info("BLUB:" + repr(blub))
+                changeme(blub)
         else:
             # do nothing
             pass
+        SOCKETIO.sleep(1.0)
+        i += 1
 
 
 @APP.route('/button')
@@ -180,6 +193,13 @@ def handle_resetme_event(jsonr):
     Resets the content of a web client.
     """
     LOGGER.info('[%s] wants resetme ' % request.remote_addr)
+    emit('reset', ({'labels': get_labels()}, jsonr))
+
+def get_labels():
+    global LABELS
+    if LABELS != None:
+        return LABELS
+
     labels = {}
     for hostname, addr in HOSTS.items():
         status = send_command(hostname, 'status')
@@ -198,8 +218,8 @@ def handle_resetme_event(jsonr):
             drum = send_command(hostname, 'labels {}'.format(i))
             labels[i] = drum
     LOGGER.debug('labels: ' + repr(labels))
-    emit('reset', ({'labels': labels}, jsonr))
-
+    LABELS = labels
+    return LABELS
 
 @SOCKETIO.on('updateme')
 def handle_updateme_event(jsonr):
