@@ -44,6 +44,8 @@ PLAYLIST = [
         {"hostname": "bob", "rgb": "#00aa00", "ww": "0", "1":0, "2":0, "3":0,}]
         ]
 
+MODE_WORKSHOP = 'workshop'
+MODE_PARTY = 'party'
 MODE_NORMAL = 'normal'
 MODE = MODE_NORMAL
 
@@ -61,13 +63,16 @@ def index():
     return render_template('index.html')
 
 def ack():
-    pass
-    #LOGGER.debug("PUPS")
-    #while True:
-    #    LOGGER.debug("PUPS2")
-    #    button() 
-    #   LOGGER.debug("PUPS3")
-    #    SOCKETIO.sleep(1.1)
+    while True:
+        SOCKETIO.sleep(1.0)
+        if MODE == MODE_NORMAL:
+            # do nothing
+            pass
+        elif MODE == MODE_PARTY:
+            LOGGER.info('PARTEY!')
+        elif MODE == MODE_WORKSHOP:
+            pass
+
 
 @APP.route('/button')
 def button():
@@ -243,9 +248,10 @@ def handle_mode_event(jsonr):
     global MODE
     MODE = jsonr['mode']
     LOGGER.info('wants to switch mode, %s' % json)
-    for hostname, addr in HOSTS.items():
-        SOCKETIO.emit('update', ({'hostname': hostname, 'status': status, 'mode': MODE, 
-            'playlist': PLAYLIST, 'position': POS}, jsonr), broadcast=True)
+    emit('connected', broadcast=True)
+    #for hostname, addr in HOSTS.items():
+    #    emit('update', {'hostname': hostname, 'status': status, 'mode': MODE, 
+    #        'playlist': PLAYLIST, 'position': POS}, broadcast=True)
         
 
 def get_update_from_drums():
