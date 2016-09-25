@@ -63,7 +63,13 @@ socket.on('update', function(json) {
     $.each(json.playlist, function(i, line) {
         pl_html = pl_html + JSON.stringify(line) + '\n';
     });
-    $('#playlist').val(pl_html);       
+    $('#playlist').val(pl_html);
+    if (json.mode === 'workshop' || json.mode === "shuffle" ) {
+    	$('#playlist').prop("disabled", false);
+    }
+    else {
+    	$('#playlist').prop("disabled", true);
+    }
 
     $('#' + json.mode).closest('label').button('toggle');
     console.log(status);
@@ -123,15 +129,19 @@ var updatePlaylist = function() {
 }
 
 $("#playlist-save-btn").click(function(ev) {
+    ev.preventDefault();
     updatePlaylist();
     return false;
 });
 
 $("#playlist-clear-btn").click(function(ev) {
+    ev.preventDefault();
     $("#playlist").val('');
+    return false;
 });
 
 $("#playlist-append-btn").click(function(ev) {
+    ev.preventDefault();
     var line = '[';
     $('form[data-hostname]').each(function(i, form) {
     	var data = form_to_object(form);
@@ -143,6 +153,7 @@ $("#playlist-append-btn").click(function(ev) {
     line = line + ']\n';
     var new_val = $("#playlist").val() + line;
     $("#playlist").val(new_val);
+    return false;
 });
 
 $(".mode-btn").click(function(ev) {

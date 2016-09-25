@@ -2,6 +2,7 @@
 # coding: utf-8
 # vim: ts=4:et
 
+import os
 import time
 import json
 import logging
@@ -10,8 +11,8 @@ from logging.handlers import RotatingFileHandler
 
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit, disconnect
-
-from greenlet import greenlet
+import random
+from colors import colors
 
 APP = Flask(__name__)
 APP.config['SECRET_KEY'] = 'secret!'
@@ -37,14 +38,12 @@ HOSTS = {
         'bob': "10.0.0.155",
         }        
 
-PLAYLIST = [
-        [{"hostname": "alice", "rgb": "#aa00aa", "ww": "10", "1":0, "2":0, "3":0},
-        {"hostname": "bob", "rgb": "#aa00aa", "ww": "10", "1":0, "2":0, "3":0}],
-        [{"hostname": "alice", "rgb": "#00aa00", "ww": "0", "1":0, "2":0, "3":0},
-        {"hostname": "bob", "rgb": "#00aa00", "ww": "0", "1":0, "2":0, "3":0,}]
-        ]
+PLAYLIST = [] # will be filled from playlist.txt at bootup
+
+PLAYLIST_FILE = os.path.join(os.path.realpath(os.path.dirname(__file__)), 'playlist.txt')
 
 MODE_WORKSHOP = 'workshop'
+MODE_SHUFFLE= 'shuffle'
 MODE_PARTY = 'party'
 MODE_NORMAL = 'normal'
 MODE = MODE_NORMAL
@@ -63,14 +62,22 @@ def index():
     return render_template('index.html')
 
 def ack():
+    """
+    Background thread that is activated when the first user connects and
+    used to do random stuff during party mode.
+    """
     while True:
         SOCKETIO.sleep(1.0)
-        if MODE == MODE_NORMAL:
-            # do nothing
-            pass
-        elif MODE == MODE_PARTY:
+        if MODE == MODE_PARTY:
             LOGGER.info('PARTEY!')
-        elif MODE == MODE_WORKSHOP:
+            host = random.choice(list(HOSTS.keys()))
+            color = random.choice(colors)
+            ww = random.randint(0, 100)
+            bla = {'rgb': '#{}'.format(color), 'ww': ww, 'hostname': host}
+            LOGGER.info(repr(bla))
+            changeme(bla)
+        else:
+            # do nothing
             pass
 
 
@@ -84,15 +91,27 @@ def button():
     global APP
     global SOCKETIO
     global PLAYLIST
-    POS += 1
-    if POS >= len(PLAYLIST):
-        POS = 0
-    entry = PLAYLIST[POS] 
-    LOGGER.debug("entry {}".format(entry))
-    for data in entry:
-        LOGGER.debug("emit {} ".format(data))
-        changeme(data)
-        #SOCKETIO.emit('changeme', data, broadcast=True)
+    global MODE
+    if MODE == MODE_WORKSHOP:
+        POS += 1
+        if POS >= len(PLAYLIST):
+            POS = 0
+        entry = PLAYLIST[POS] 
+        LOGGER.debug("entry {}".format(entry))
+        for data in entry:
+            LOGGER.debug("emit {} ".format(data))
+            changeme(data)
+    elif MODE == MODE_SHUFFLE:
+        new_pos = random.randint(0, len(PLAYLIST) - 1)
+        while new_pos == POS:
+            new_pos = random.randint(0, len(PLAYLIST) - 1)
+        POS = new_pos
+        entry = PLAYLIST[POS] 
+        for data in entry:
+            changeme(data)
+    else:
+        #do nothing
+        pass
     return render_template('button.html')
 
 
@@ -119,6 +138,9 @@ def send_command(hostname, command, wait=True):
     # print('Socket-Response: {}'.format(data))
     decoded = json.loads(data.decode('utf-8'))
     return decoded
+
+def select_random_label(hostname):
+    pass    
 
 @SOCKETIO.on('connect')
 def handle_connect_event():
@@ -157,11 +179,25 @@ def handle_resetme_event(jsonr):
     """
     Resets the content of a web client.
     """
-    LOGGER.info('[%s] wants fresh content' % request.remote_addr)
+    LOGGER.info('[%s] wants resetme ' % request.remote_addr)
     labels = {}
-    for i in [1,2,3,4,5,6]:
-        drum = send_command('alice', 'labels {}'.format(i))
-        labels[i] = drum
+    for hostname, addr in HOSTS.items():
+        status = send_command(hostname, 'status')
+        LOGGER.debug('status {}: {}'.format(hostname, repr(status)))
+        drum_nums = []
+        for i in status:
+            try:
+                if isinstance(i['address'], int):
+                    drum_nums.append(i['address']) 
+            except KeyError:
+                pass
+        LOGGER.debug('drum nums: ' + repr(drum_nums))
+        # TODO: Make {"hostname": "alice", "address": 1} and {"hostname": "bob", "address": 1}
+        # Currently the address number may only occur once, even if the drum is at different hosts.
+        for i in drum_nums:
+            drum = send_command(hostname, 'labels {}'.format(i))
+            labels[i] = drum
+    LOGGER.debug('labels: ' + repr(labels))
     emit('reset', ({'labels': labels}, jsonr))
 
 
@@ -237,8 +273,12 @@ def handle_playlist_event(jsonr):
     global POS
     new_playlist = jsonr['playlist']
     PLAYLIST = new_playlist
+    with open(PLAYLIST_FILE, mode="w") as fh:
+        for i in new_playlist:
+            fh.write(json.dumps(i) + '\n')
     POS = -1
     for hostname, addr in HOSTS.items():
+        status = send_command(hostname, 'status')
         SOCKETIO.emit('update', ({'hostname': hostname, 'status': status, 'mode': MODE,
             'playlist': PLAYLIST, 'position': POS}, jsonr), broadcast=True)
             
@@ -262,4 +302,9 @@ def get_update_from_drums():
 
 
 if __name__ == '__main__':
+    LOGGER.info("Reading {}".format(PLAYLIST_FILE))
+    with open(PLAYLIST_FILE, mode="r") as infh:
+        for line in infh.readlines():
+            PLAYLIST.append(json.loads(line))
+
     SOCKETIO.run(APP, debug=True)

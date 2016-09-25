@@ -189,6 +189,10 @@
 				        <input type="radio" name="options" id="workshop" autocomplete="off">
                         <span class="glyphicon glyphicon-blackboard"></span>&nbsp;Workshop
 				    </label>
+				    <label class="btn btn-primary mode-btn">
+					 <input type="radio" name="options" id="shuffle" autocomplete="off">
+                        <span class="glyphicon glyphicon-random"></span>&nbsp;Shuffle
+					</label>
 					<label class="btn btn-primary mode-btn">
 				        <input type="radio" name="options" id="party" autocomplete="off">
                         <span class="glyphicon glyphicon-glass"></span>&nbsp;Party
@@ -198,7 +202,7 @@
                         <span class="glyphicon glyphicon-cloud"></span>&nbsp;Normal
 					</label>
 		        </div>
-		        <h3 Playlist <small>Position: <span id="position">?</span></small>
+			<h3>Playlist <small>Position: <span id="position">?</span></small>
 		            <button class="btn btn-danger pull-right" id="playlist-clear-btn">
                         <span class="glyphicon glyphicon-trash"></span>&nbsp;Löschen</button>
 		            <button class="btn btn-success pull-right" id="playlist-save-btn" style="margin-right: 10px;">
@@ -208,7 +212,7 @@
 		        </h3>
                 </form>
 		<p class="clearfix"></p>
-                <textarea class="form-control" id="playlist" style="width: 100%">[{"hostname": "alice", "rgb": "#ff00ff", "ww": "10"}]</textarea>
+                <textarea class="form-control" id="playlist" style="height: 150px; width: 100%">[{"hostname": "alice", "rgb": "#ff00ff", "ww": "10"}]</textarea>
                 </p>
             </div><!-- /.col -->    
 	    </div><!-- /.row -->
