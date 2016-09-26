@@ -255,17 +255,17 @@ def dourl(url):
 @asyncio.coroutine
 def watch_button(loop):
     last_pushed = -1
-    last_state = 0
+    last_state = 1
     while True:
         curr_state = GPIO.input(4)
-        if curr_state == 1 and last_state == 0:
+        if curr_state == 0 and last_state == 1:
             curr_time = loop.time()
             if curr_time - last_pushed > 0.6:
                 print("PUSH BUTTON +++++++++++++++++++++++++++++++++++")
                 future1 = loop.run_in_executor(None, dourl, 'http://www.google.com')
                 bla = yield from future1
             last_pushed = loop.time()
-        if curr_state == 0 and last_state == 1:
+        if curr_state == 1 and last_state == 0:
             print("RELEASE BUTTON")
         last_state = curr_state 
         yield from asyncio.sleep(0.01)
