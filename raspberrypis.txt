@@ -1,0 +1,6 @@
+alice.local:
+ping6 fe80::ba27:ebff:fe78:8d5%en1
+ssh alarm@fe80::ba27:ebff:fe78:8d5%en1
+
+bob.local:
+fe80::ba27:ebff:fe43:8140
