@@ -35,7 +35,7 @@ thread = None
 
 HOSTS = {
         'alice': "127.0.0.1",
-        'bob': "10.0.0.155",
+        'bob': "172.17.0.2",
         }        
 
 PLAYLIST = [] # will be filled from playlist.txt at bootup

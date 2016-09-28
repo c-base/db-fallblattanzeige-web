@@ -195,7 +195,7 @@ class RoloboxProtocol(asyncio.Protocol):
         elif msg.startswith("light"):
             l, values = msg.split(" ", 1)
             lights = [int(val) for val in values.split(" ", 4)]
-            light_msg = values + "\n"
+            light_msg = '{1} {0} {2} {3}\n'.format(*lights)
             asyncio.async(self.send_light(light_msg.encode("utf-8")))
             return
         else:
